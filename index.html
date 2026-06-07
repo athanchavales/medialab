@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oak Hill — Creative GCSE Teaching Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- SUBJECT BAR -->
+  <div class="subj-bar">
+    <span class="subj-label">Oak Hill Creative GCSEs</span>
+    <button class="subj-btn s-media active" id="btn-media" onclick="setSubject('media',this)">
+      <i class="ti ti-device-tv"></i> Media Studies
+    </button>
+    <button class="subj-btn s-photo" id="btn-photo" onclick="setSubject('photo',this)">
+      <i class="ti ti-camera"></i> Photography
+    </button>
+    <button class="subj-btn s-graphic" id="btn-graphic" onclick="setSubject('graphic',this)">
+      <i class="ti ti-vector-bezier"></i> Graphic Communication
+    </button>
+    <button class="subj-btn classroom-btn" onclick="toggleClassroom()" title="Classroom display mode">
+      <i class="ti ti-presentation"></i> Classroom Mode
+    </button>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo" id="logo">
+      Oak Hill<small id="logo-sub">Media Studies</small>
+    </div>
+    <div class="header-center" id="header-center">
+      <span class="view-label" id="view-label">Teaching Platform</span>
+    </div>
+    <div class="header-right">
+      <label for="board-sel">Exam Board:</label>
+      <select class="board-select" id="board-sel" onchange="setBoard(this.value)">
+        <option value="aqa">AQA</option>
+        <option value="ocr">OCR</option>
+        <option value="eduqas">Eduqas</option>
+      </select>
+      <span class="board-badge" id="board-badge">AQA</span>
+      <div class="session-score" id="session-score" title="Session score">
+        <i class="ti ti-chart-bar"></i>
+        <span id="score-display">0 / 0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar" id="tab-bar">
+    <button class="tab-btn active" onclick="showPanel('teach',this)">
+      <i class="ti ti-chalkboard"></i> Teach
+    </button>
+    <button class="tab-btn" onclick="showPanel('lessons',this)">
+      <i class="ti ti-calendar"></i> Lessons
+    </button>
+    <button class="tab-btn" onclick="showPanel('theory',this)">
+      <i class="ti ti-book-2"></i> Theory
+    </button>
+    <button class="tab-btn" onclick="showPanel('settexts',this)">
+      <i class="ti ti-film"></i> <span id="set-texts-label">Set Texts</span>
+    </button>
+    <button class="tab-btn" onclick="showPanel('written',this)">
+      <i class="ti ti-writing"></i> Written Practice
+    </button>
+    <button class="tab-btn" onclick="showPanel('quiz',this)">
+      <i class="ti ti-help-circle"></i> Quick Quiz
+    </button>
+    <button class="tab-btn" onclick="showPanel('mock',this)">
+      <i class="ti ti-clock"></i> Mock Exam
+    </button>
+    <button class="tab-btn" onclick="showPanel('glossary',this)">
+      <i class="ti ti-vocabulary"></i> Glossary
+    </button>
+    <button class="tab-btn" onclick="showPanel('worksheets',this)">
+      <i class="ti ti-printer"></i> Worksheets
+    </button>
+    <button class="tab-btn" onclick="showPanel('progress',this)">
+      <i class="ti ti-chart-pie"></i> Progress
+    </button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="main-content">
+
+    <!-- ══ TEACH PANEL ══ -->
+    <section id="panel-teach" class="panel active">
+      <div class="teach-header">
+        <p class="s-label">Classroom teaching hub</p>
+        <div class="board-info" id="teach-board-info">
+          <i class="ti ti-info-circle"></i>
+          <p id="teach-board-text"></p>
+        </div>
+      </div>
+      <div class="teach-grid">
+        <div class="topic-selector">
+          <p class="s-label">Select topic</p>
+          <div class="topic-cards" id="topic-cards"></div>
+        </div>
+        <div class="topic-display">
+          <div class="content-box" id="topic-display-box">
+            <h2 id="topic-display-title"></h2>
+            <div id="topic-display-body"></div>
+          </div>
+          <div class="topic-examples" id="topic-examples"></div>
+          <div class="topic-resources" id="topic-resources"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ LESSONS PANEL ══ -->
+    <section id="panel-lessons" class="panel">
+      <p class="s-label">Schemes of work & lesson plans</p>
+      <div class="lessons-grid" id="lessons-grid"></div>
+      <div class="lesson-detail" id="lesson-detail" style="display:none">
+        <button class="back-btn" onclick="closeLessonDetail()">
+          <i class="ti ti-arrow-left"></i> Back to all lessons
+        </button>
+        <div id="lesson-detail-content"></div>
+      </div>
+    </section>
+
+    <!-- ══ THEORY PANEL ══ -->
+    <section id="panel-theory" class="panel">
+      <p class="s-label">Detailed theory with examples</p>
+      <div class="theory-nav" id="theory-nav"></div>
+      <div class="theory-content" id="theory-content"></div>
+    </section>
+
+    <!-- ══ SET TEXTS PANEL ══ -->
+    <section id="panel-settexts" class="panel">
+      <p class="s-label" id="set-texts-heading">Prescribed study texts</p>
+      <div class="board-info" id="st-board-info">
+        <i class="ti ti-info-circle"></i>
+        <p id="st-board-text"></p>
+      </div>
+      <div class="set-texts-grid" id="set-texts-grid"></div>
+    </section>
+
+    <!-- ══ WRITTEN PRACTICE PANEL ══ -->
+    <section id="panel-written" class="panel">
+      <p class="s-label">Extended written question practice</p>
+      <div class="written-controls">
+        <select class="filter-sel" id="written-filter" onchange="filterWritten()">
+          <option value="all">All mark levels</option>
+          <option value="2">2-mark questions</option>
+          <option value="4">4-mark questions</option>
+          <option value="8">8-mark questions</option>
+          <option value="12">12-mark questions</option>
+          <option value="20">20-mark questions</option>
+        </select>
+        <select class="filter-sel" id="written-topic-filter" onchange="filterWritten()"></select>
+        <button class="btn-sm" onclick="shuffleWritten()"><i class="ti ti-shuffle"></i> Shuffle</button>
+      </div>
+      <div id="written-area"></div>
+    </section>
+
+    <!-- ══ QUIZ PANEL ══ -->
+    <section id="panel-quiz" class="panel">
+      <div class="quiz-controls">
+        <label class="ctrl-label">Filter by topic:</label>
+        <select class="filter-sel" id="quiz-filter" onchange="filterQuiz()"></select>
+        <button class="btn-sm" onclick="resetQuiz()" style="margin-left:auto">
+          <i class="ti ti-refresh"></i> Reset
+        </button>
+      </div>
+      <div class="score-display">
+        <div class="score-num" id="q-score-num">0</div>
+        <div>
+          <div class="score-label" id="q-score-label">of 0 answered correctly</div>
+          <div class="score-sub" id="q-progress"></div>
+        </div>
+      </div>
+      <div id="quiz-area"></div>
+    </section>
+
+    <!-- ══ MOCK EXAM PANEL ══ -->
+    <section id="panel-mock" class="panel">
+      <div id="mock-setup">
+        <p class="s-label">Timed mock examination</p>
+        <div class="mock-setup-box">
+          <h3><i class="ti ti-clock"></i> Set up your mock exam</h3>
+          <p>Choose duration and question count. Answers are auto-marked with a GCSE grade and topic breakdown.</p>
+          <p class="s-label" style="margin-bottom:.5rem">Duration</p>
+          <div class="mock-opt-grid" id="dur-opts">
+            <div class="mock-opt sel" onclick="pickDur(this,10)"><h4>10 min</h4><p>Quick revision</p></div>
+            <div class="mock-opt" onclick="pickDur(this,20)"><h4>20 min</h4><p>Standard session</p></div>
+            <div class="mock-opt" onclick="pickDur(this,45)"><h4>45 min</h4><p>Full simulation</p></div>
+            <div class="mock-opt" onclick="pickDur(this,60)"><h4>60 min</h4><p>Exam conditions</p></div>
+          </div>
+          <p class="s-label" style="margin-bottom:.5rem">Questions</p>
+          <div class="mock-opt-grid" id="qc-opts">
+            <div class="mock-opt sel" onclick="pickQC(this,10)"><h4>10 questions</h4><p>Short practice</p></div>
+            <div class="mock-opt" onclick="pickQC(this,15)"><h4>15 questions</h4><p>Medium</p></div>
+            <div class="mock-opt" onclick="pickQC(this,20)"><h4>20 questions</h4><p>Full length</p></div>
+            <div class="mock-opt" onclick="pickQC(this,25)"><h4>25 questions</h4><p>Extended</p></div>
+          </div>
+          <button class="start-btn" onclick="startMock()">
+            <i class="ti ti-player-play"></i> Start exam
+          </button>
+        </div>
+      </div>
+      <div id="mock-exam" style="display:none">
+        <div class="timer-bar">
+          <div>
+            <div class="timer-label">Time remaining</div>
+            <div class="timer-clock" id="timer-display">10:00</div>
+          </div>
+          <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+          <div style="text-align:right">
+            <div class="mock-q-num" id="mock-q-num">Q 1/10</div>
+            <div class="mock-ans-count" id="mock-answered">0 answered</div>
+          </div>
+        </div>
+        <div id="mock-questions"></div>
+        <button class="submit-btn" onclick="submitMock()">
+          <i class="ti ti-check"></i> Submit exam
+        </button>
+      </div>
+      <div id="mock-results" style="display:none">
+        <div class="results-box">
+          <h3>Exam Results</h3>
+          <div class="grade-circle" id="grade-circle"></div>
+          <p class="grade-msg" id="grade-msg"></p>
+          <div class="grade-row" id="grade-row"></div>
+          <div id="results-breakdown"></div>
+          <div class="results-actions">
+            <button class="retry-btn" onclick="resetMock()">
+              <i class="ti ti-refresh"></i> Try again
+            </button>
+            <button class="retry-btn" onclick="printResults()">
+              <i class="ti ti-printer"></i> Print results
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ GLOSSARY PANEL ══ -->
+    <section id="panel-glossary" class="panel">
+      <p class="s-label">Key terminology</p>
+      <input class="gloss-search" type="search" id="gloss-search"
+        placeholder="Search terms, definitions…" oninput="renderGloss()" aria-label="Search glossary">
+      <div class="gloss-filters" id="gloss-filters"></div>
+      <div id="gloss-list"></div>
+    </section>
+
+    <!-- ══ WORKSHEETS PANEL ══ -->
+    <section id="panel-worksheets" class="panel">
+      <p class="s-label">Printable student worksheets & activities</p>
+      <div class="worksheets-intro">
+        <i class="ti ti-printer"></i>
+        <p>Click any worksheet to preview it, then use your browser's print function (Ctrl+P / Cmd+P) to print for students.</p>
+      </div>
+      <div class="worksheets-grid" id="worksheets-grid"></div>
+      <div class="worksheet-preview" id="worksheet-preview" style="display:none">
+        <div class="worksheet-preview-bar">
+          <button class="back-btn" onclick="closeWorksheet()">
+            <i class="ti ti-arrow-left"></i> Back to worksheets
+          </button>
+          <button class="print-btn" onclick="window.print()">
+            <i class="ti ti-printer"></i> Print this worksheet
+          </button>
+        </div>
+        <div class="worksheet-content" id="worksheet-content"></div>
+      </div>
+    </section>
+
+    <!-- ══ PROGRESS PANEL ══ -->
+    <section id="panel-progress" class="panel">
+      <p class="s-label">Session progress & performance tracker</p>
+      <div class="progress-overview" id="progress-overview"></div>
+      <div class="progress-details" id="progress-details"></div>
+      <div style="margin-top:1.5rem">
+        <button class="btn-sm" onclick="clearProgress()">
+          <i class="ti ti-trash"></i> Clear session data
+        </button>
+        <button class="btn-sm" onclick="window.print()">
+          <i class="ti ti-printer"></i> Print progress report
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- CLASSROOM MODE OVERLAY -->
+<div class="classroom-overlay" id="classroom-overlay" style="display:none">
+  <div class="classroom-header">
+    <div class="classroom-logo">Oak Hill — <span id="classroom-subject">Media Studies</span></div>
+    <div class="classroom-board" id="classroom-board-badge">AQA</div>
+    <button class="classroom-close" onclick="toggleClassroom()">
+      <i class="ti ti-x"></i> Exit
+    </button>
+  </div>
+  <div class="classroom-body" id="classroom-body">
+    <div class="classroom-topic" id="classroom-topic">Select a topic to display</div>
+    <div class="classroom-content" id="classroom-content"></div>
+  </div>
+  <div class="classroom-nav">
+    <button onclick="classroomPrev()"><i class="ti ti-chevron-left"></i> Previous</button>
+    <span id="classroom-progress">Topic 1 of 5</span>
+    <button onclick="classroomNext()">Next <i class="ti ti-chevron-right"></i></button>
+  </div>
+</div>
+
+<!-- PRINT STYLES -->
+<div id="print-area" style="display:none"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
