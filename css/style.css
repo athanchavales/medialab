@@ -406,15 +406,18 @@ body {
 
 /* Key concepts list in teach panel */
 .key-concept {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px 0;
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 13px 0;
   border-bottom: 1px solid var(--border);
 }
 .key-concept:last-child { border-bottom: none; padding-bottom: 0; }
-.concept-text { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.key-concept > .ctag { margin-top: 0; width: fit-content; justify-self: start; }
+.concept-text { font-size: 13.5px; color: var(--text2); line-height: 1.7; }
 .concept-text strong { color: var(--text); font-weight: 600; }
+.concept-text em { color: var(--text3); font-style: italic; }
 
 /* Examples box */
 .examples-box {

@@ -76,6 +76,9 @@
     <button class="tab-btn" onclick="showPanel('glossary',this)">
       <i class="ti ti-vocabulary"></i> Glossary
     </button>
+    <button class="tab-btn" onclick="showPanel('boards',this)">
+      <i class="ti ti-school"></i> Exam Boards
+    </button>
     <button class="tab-btn" onclick="showPanel('worksheets',this)">
       <i class="ti ti-printer"></i> Worksheets
     </button>
@@ -247,6 +250,12 @@
         placeholder="Search terms, definitions…" oninput="renderGloss()" aria-label="Search glossary">
       <div class="gloss-filters" id="gloss-filters"></div>
       <div id="gloss-list"></div>
+    </section>
+
+    <!-- ══ BOARDS PANEL ══ -->
+    <section id="panel-boards" class="panel">
+      <p class="s-label">Exam board comparison & recommendation</p>
+      <div id="boards-content"></div>
     </section>
 
     <!-- ══ WORKSHEETS PANEL ══ -->

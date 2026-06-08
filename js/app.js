@@ -91,6 +91,7 @@ function setSubject(id, btn) {
   renderWorksheets();
   renderLessons();
   renderTheory();
+  renderBoards();
   renderProgress();
   updateScoreDisplay();
 
@@ -131,7 +132,7 @@ function showPanel(id, btn) {
     teach:'Teaching Hub', lessons:'Lessons & SoW', theory:'Theory',
     settexts: SUBJECTS[currentSubject].setTextsLabel,
     written:'Written Practice', quiz:'Quick Quiz', mock:'Mock Exam',
-    glossary:'Glossary', worksheets:'Worksheets', progress:'Progress'
+    glossary:'Glossary', boards:'Exam Boards', worksheets:'Worksheets', progress:'Progress'
   }[id] || id;
 }
 
@@ -171,7 +172,7 @@ function setTopic(i, el) {
   var body = document.getElementById('topic-display-body');
   body.innerHTML = t.concepts.map(function(c){
     return '<div class="key-concept">' +
-      '<div><span class="ctag ' + c.tc + '">' + c.tag + '</span></div>' +
+      '<span class="ctag ' + c.tc + '">' + c.tag + '</span>' +
       '<p class="concept-text">' + c.text + '</p></div>';
   }).join('');
 
@@ -1032,7 +1033,246 @@ function classroomNext() {
   else setTopic(currentTopic, null);
 }
 
-/* ─── UTILITY ─── */
+/* ─── BOARDS COMPARISON ─── */
+function renderBoards() {
+  var S = SUBJECTS[currentSubject];
+  var subjectName = S.name;
+
+  var data = {
+    media: {
+      intro: 'All three major exam boards offer a strong GCSE Media Studies qualification. The core content — Media Language, Representation, Industries, Audiences — is very similar across all three. The key differences lie in assessment structure, set text selection and the weighting of the coursework component.',
+      recommendation: {
+        board: 'Eduqas',
+        reasons: [
+          'Eduqas (the WJEC subsidiary for England) is widely regarded as the most teacher-friendly board for Media Studies in alternative provision and SEN settings.',
+          'The set texts feel culturally relevant and contemporary — students engage well with I, Daniel Blake, This Is America and His Dark Materials.',
+          'The coursework component (30%) gives SEN students a chance to demonstrate genuine creativity and analytical thinking without the entire grade resting on exam performance.',
+          'Eduqas provides excellent free teaching resources, including detailed schemes of work, sample student responses and mark schemes — reducing teacher workload significantly.',
+          'The examination questions are clearly structured with shorter, scaffolded questions before the extended response — well suited to students who benefit from a stepped approach.'
+        ],
+        caveat: 'If your students are particularly strong writers and your school has existing links with AQA for other subjects, AQA is also a solid choice. OCR suits schools that want more flexibility in set text selection.'
+      },
+      boards: [
+        {
+          name: 'AQA', id: 'aqa', tc: 'ctag-g',
+          code: '8572',
+          structure: [
+            { component: 'Component 1', title: 'Exploring the Media', weight: '35%', format: 'Written exam — 1hr 30min. Section A: unseen media language analysis. Section B: representation question on unseen text. Section C: media industries and audiences using set texts.' },
+            { component: 'Component 2', title: 'Understanding Media Forms & Products', weight: '35%', format: 'Written exam — 1hr 30min. In-depth study of set texts across TV, music video, magazines, newspapers, video games and online.' },
+            { component: 'Component 3', title: 'NEA — Creating Media', weight: '30%', format: 'Non-exam assessment: students create a media product and write a Statement of Intent (approx. 500 words). Marked by the teacher, moderated by AQA.' }
+          ],
+          strengths: ['Very well-resourced — huge amount of freely available teaching materials, mark schemes and past papers online', 'Widely used across England — easy to find CPD, teacher networks and shared resources', 'NEA gives students creative freedom; Statement of Intent rewards analytical writing', 'Clear, well-structured mark schemes that are straightforward to apply'],
+          challenges: ['Set texts can feel dated quickly — AQA refreshes them every two years but choices are sometimes less culturally relevant to inner-city or diverse student cohorts', 'Two long written exams (3 hours total) — significant demand on students who find extended writing difficult', 'The unseen analysis in Component 1 requires strong exam confidence — less scaffolded than Eduqas'],
+          senNote: 'The NEA component is a significant strength for SEN students — it rewards process and creativity. However, the two heavy written exams mean students need strong writing stamina.',
+          website: 'https://www.aqa.org.uk/subjects/media-studies/gcse/media-studies-8572'
+        },
+        {
+          name: 'OCR', id: 'ocr', tc: 'ctag-p',
+          code: 'J200',
+          structure: [
+            { component: 'Component 1', title: 'Exploring Media Language & Representation', weight: '40%', format: 'Written exam — 1hr 30min. Media language analysis of unseen products + representation questions.' },
+            { component: 'Component 2', title: 'Exploring Media Industries & Audiences', weight: '30%', format: 'Written exam — 1hr. Industries and audiences questions using set texts.' },
+            { component: 'Component 3', title: 'Production Portfolio', weight: '30%', format: 'Students create a media product responding to a brief set by OCR. Production + evaluation report.' }
+          ],
+          strengths: ['Production brief is set by OCR — removes teacher burden of designing a valid brief; also provides authenticity', 'Two exams with different lengths (90 min + 60 min) may suit some students better than two equal-length papers', 'Good range of set texts with some more recent and culturally diverse options than AQA', 'Strong support materials via the OCR Media Studies community and Teach Cambridge portal'],
+          challenges: ['The externally set production brief can occasionally feel restrictive — less creative freedom than AQA NEA', 'OCR has a smaller teacher community in England than AQA — slightly fewer shared resources available', 'Component 1 (40% of the grade) is a heavy single exam — high-stakes for students who struggle with written assessments'],
+          senNote: 'The split exam structure (90 min + 60 min) is slightly more manageable than two equal 90-minute papers. The externally set production brief provides clear structure which some SEN students find helpful.',
+          website: 'https://www.ocr.org.uk/qualifications/gcse/media-studies-j200-from-2017/'
+        },
+        {
+          name: 'Eduqas', id: 'eduqas', tc: 'ctag-b',
+          code: 'C680QS',
+          structure: [
+            { component: 'Component 1', title: 'Exploring the Media', weight: '40%', format: 'Written exam — 1hr 30min. Stepped questions from shorter analysis through to extended response. Section A: media language. Section B: representation. Section C: media in the online age.' },
+            { component: 'Component 2', title: 'Understanding Media Forms and Products', weight: '30%', format: 'Written exam — 1hr. Set text questions on TV drama, magazines, newspapers and music video.' },
+            { component: 'Component 3', title: 'Creating Media', weight: '30%', format: 'Non-exam assessment: create a media product + a Statement of Intent OR evaluative analysis (approx. 1,500 words). Flexible briefs.' }
+          ],
+          strengths: ['Stepped exam questions (short → medium → extended) are better suited to students who benefit from scaffolded assessment — never a cold "write 20 marks" from the start', 'Eduqas provides the most comprehensive free teaching resources of the three boards — detailed schemes of work, annotated student samples and filmed teacher CPD', 'Set texts in recent cycles have been notably relevant and engaging for diverse student cohorts (I, Daniel Blake; This Is America; His Dark Materials)', 'NEA flexibility allows students to choose a media form that plays to their strengths', 'Strong presence in Wales and growing in England — dedicated Eduqas teacher community events'],
+          challenges: ['Slightly less brand recognition than AQA in some English secondary settings — a minor practical consideration if students\' future schools/sixth forms use AQA', 'Fewer past papers available than AQA (shorter history in England) — though specimen papers and sample questions are thorough', 'The evaluative analysis option in Component 3 requires strong written reflection — some SEN students may need significant support with this element'],
+          senNote: 'Strongest fit for SEN and alternative provision settings. Stepped exam questions, engaging set texts, excellent free resources and flexible NEA briefs all reduce barriers to access without reducing rigour.',
+          website: 'https://www.eduqas.co.uk/qualifications/media-studies-gcse/'
+        }
+      ]
+    },
+    photo: {
+      intro: 'GCSE Photography is offered by AQA, OCR and Eduqas. The qualification is 60% coursework portfolio and 40% Externally Set Assignment (ESA) across all boards — the structure is very similar. Differences lie in how the ESA is administered, how broadly or narrowly the AOs are interpreted in marking, and the quality of teacher support materials.',
+      recommendation: {
+        board: 'AQA',
+        reasons: [
+          'AQA Photography has the largest uptake of the three boards in England and therefore the deepest bank of freely available teacher resources, past papers and sample portfolios.',
+          'AQA\'s mark scheme interpretation is well-established and understood — teachers in the Art & Design department will likely have strong existing experience with it.',
+          'The ESA starting points are consistently broad and open-ended — well suited to SEN students who benefit from personal, self-directed responses.',
+          'AQA provides excellent CPD events for Photography teachers and has a well-maintained online resource hub.',
+          'If your department already uses AQA for other Art & Design qualifications (Art, Graphics), keeping Photography on AQA simplifies moderation and teacher workload.'
+        ],
+        caveat: 'If your school uses Eduqas for other subjects, Eduqas Photography is equally strong — the qualification structure is almost identical. The choice between AQA and Eduqas for Photography is genuinely close and may simply come down to which board your department has the strongest relationship with.'
+      },
+      boards: [
+        {
+          name: 'AQA', id: 'aqa', tc: 'ctag-a',
+          code: '7206/C',
+          structure: [
+            { component: 'Portfolio', title: 'Personal Portfolio', weight: '60%', format: '96 marks. A sustained body of coursework responding to a self-chosen theme. Must show evidence of all 4 AOs throughout.' },
+            { component: 'ESA', title: 'Externally Set Assignment', weight: '40%', format: '64 marks. AQA sets starting points in January. Preparation period (research, experiments) + 10-hour supervised session.' }
+          ],
+          strengths: ['Largest community of Photography teachers — excellent shared resources, Facebook groups, teacher networks', 'ESA starting points are reliably broad and open-ended — genuine creative freedom', 'Strong online student exemplar bank to support marking calibration', 'Well-established moderation process with clear guidance'],
+          challenges: ['AQA Photography can feel very open-ended — some SEN students may need more structured guidance to produce a coherent portfolio without feeling overwhelmed', 'The 10-hour ESA session is intense — requires careful preparation and planning support'],
+          senNote: 'Suits students who have an intrinsic interest in photography and can self-direct. Strong teacher scaffolding needed during the portfolio phase. ESA starting points can be interpreted very accessibly.',
+          website: 'https://www.aqa.org.uk/subjects/art-and-design/gcse/art-and-design-8206/specification'
+        },
+        {
+          name: 'OCR', id: 'ocr', tc: 'ctag-p',
+          code: 'J171/06',
+          structure: [
+            { component: 'Portfolio', title: 'Personal Portfolio', weight: '60%', format: '96 marks. Sustained investigation responding to a chosen theme. All 4 AOs evidenced.' },
+            { component: 'ESA', title: 'Externally Set Assignment', weight: '40%', format: '64 marks. OCR sets a theme. Students respond through preparation and a supervised session.' }
+          ],
+          strengths: ['OCR provides clear guidance on contextual studies — helpful for building AO1 evidence systematically', 'Good quality mark scheme exemplars with detailed commentary', 'The OCR Art & Design community has active teacher support forums'],
+          challenges: ['Smaller uptake than AQA — fewer freely available resources, exemplar portfolios and peer discussions', 'Some teachers report OCR moderation can be less predictable in borderline cases'],
+          senNote: 'A solid option, particularly if your school uses OCR for other Art & Design subjects. The structured AO guidance can help SEN students understand what is expected.',
+          website: 'https://www.ocr.org.uk/qualifications/gcse/art-and-design-j171-from-2016/'
+        },
+        {
+          name: 'Eduqas', id: 'eduqas', tc: 'ctag-b',
+          code: 'C120P',
+          structure: [
+            { component: 'Portfolio', title: 'Personal Portfolio', weight: '60%', format: '96 marks. Sustained coursework body showing all 4 AOs. Strong emphasis on personal visual language.' },
+            { component: 'ESA', title: 'Externally Set Assignment', weight: '40%', format: '64 marks. Eduqas sets broad themes. Preparation period + supervised session.' }
+          ],
+          strengths: ['Eduqas ESA themes have consistently been broad, inspiring and accessible — good for diverse student interests', 'Excellent free teacher resources including annotated sample work at multiple grade boundaries', 'Strong emphasis on personal visual language in marking — rewards genuine student voice'],
+          challenges: ['Smaller teacher community in England — fewer local CPD events and peer networks than AQA', 'Fewer past papers and less exam legacy to draw on for teacher calibration'],
+          senNote: 'Eduqas\'s emphasis on personal response and visual language can be liberating for SEN students who might feel constrained by more rigid frameworks. Strong free resources reduce teacher workload.',
+          website: 'https://www.eduqas.co.uk/qualifications/art-and-design-gcse/'
+        }
+      ]
+    },
+    graphic: {
+      intro: 'GCSE Graphic Communication (or Art & Design: Graphic Communication) is also structured around 60% coursework and 40% ESA across all three boards. The subject rewards both technical design skills and conceptual thinking. Board differences are mainly in the quality of teacher support, the breadth of set briefs, and how broadly contextual investigation is interpreted.',
+      recommendation: {
+        board: 'AQA',
+        reasons: [
+          'AQA Graphic Communication has the largest teacher community and resource base of the three boards in England.',
+          'AQA\'s approach to Graphic Communication is broad — covering typography, identity, packaging, environmental and digital design — giving creative and academically diverse students equal opportunity to excel.',
+          'The ESA starting points for AQA Graphics have consistently allowed students to pursue personally meaningful design problems.',
+          'AQA provides detailed teacher guidance on how to support students with the design process — useful for SEN settings where explicit process scaffolding is essential.',
+          'If your school already uses AQA for Photography or other Art & Design qualifications, the moderation process is streamlined.'
+        ],
+        caveat: 'Eduqas Graphic Communication is increasingly popular and their free resources are excellent — worth serious consideration, particularly if your school is already using Eduqas for Media Studies.'
+      },
+      boards: [
+        {
+          name: 'AQA', id: 'aqa', tc: 'ctag-p',
+          code: '7206/D',
+          structure: [
+            { component: 'Portfolio', title: 'Personal Portfolio', weight: '60%', format: '96 marks. Sustained design project demonstrating all 4 AOs — from initial research through to resolved final outcomes.' },
+            { component: 'ESA', title: 'Externally Set Assignment', weight: '40%', format: '64 marks. AQA sets design-focused starting points. Preparation period + 10-hour supervised session.' }
+          ],
+          strengths: ['Widest range of AQA Graphic Communication teaching materials, exemplar portfolios and teacher communities', 'Broad interpretation of what counts as "Graphic Communication" — rewards diverse approaches', 'Clear mark scheme guidance on each AO at multiple grade boundaries', 'Strong CPD events for Graphic Communication teachers'],
+          challenges: ['The 10-hour ESA can be very demanding for students who haven\'t fully resolved their design concept during preparation', 'Open-ended portfolio can be difficult for students who need more explicit structure'],
+          senNote: 'The design process (brief → research → thumbnail → develop → refine) gives SEN students a clear scaffold if the teacher explicitly teaches it as a stage-by-stage process. The creative freedom can be either motivating or overwhelming depending on the student.',
+          website: 'https://www.aqa.org.uk/subjects/art-and-design/gcse/art-and-design-8206/specification'
+        },
+        {
+          name: 'OCR', id: 'ocr', tc: 'ctag-g',
+          code: 'J171/05',
+          structure: [
+            { component: 'Portfolio', title: 'Personal Portfolio', weight: '60%', format: '96 marks. Design investigation and development demonstrating all 4 AOs.' },
+            { component: 'ESA', title: 'Externally Set Assignment', weight: '40%', format: '64 marks. OCR-set brief with preparation period and supervised session.' }
+          ],
+          strengths: ['OCR Graphic Communication brief has historically had a strong emphasis on commercial-style design problems — motivating for students who like "real" briefs', 'Good guidance on assessing design process (AO2 and AO3) which can benefit students whose final outcomes are weaker than their development work'],
+          challenges: ['Smaller community and fewer freely shared resources than AQA', 'Less flexibility in what counts as a valid graphic communication response'],
+          senNote: 'The commercial design brief approach can be highly motivating for students who engage well with a clear client/audience. Less suitable if students need maximum creative freedom.',
+          website: 'https://www.ocr.org.uk/qualifications/gcse/art-and-design-j171-from-2016/'
+        },
+        {
+          name: 'Eduqas', id: 'eduqas', tc: 'ctag-b',
+          code: 'C120GC',
+          structure: [
+            { component: 'Portfolio', title: 'Personal Portfolio', weight: '60%', format: '96 marks. Sustained design project across the AOs. Strong emphasis on personal design language and contextual investigation.' },
+            { component: 'ESA', title: 'Externally Set Assignment', weight: '40%', format: '64 marks. Broad Eduqas themes with preparation and supervised session.' }
+          ],
+          strengths: ['Eduqas free resources for Graphic Communication are excellent and comprehensive — detailed annotation guidance, sample work and teacher notes', 'ESA themes tend to be conceptually interesting and accessible to a wide range of students', 'Strong emphasis on personal design voice — rewards students who develop a distinctive approach'],
+          challenges: ['Smaller England teacher community than AQA — fewer local CPD events', 'If your school uses AQA for Photography, mixing boards across Art & Design subjects adds administrative complexity'],
+          senNote: 'Eduqas\'s excellent free resources significantly reduce teacher preparation time — a real advantage for busy teachers in alternative provision settings. The emphasis on personal voice can be empowering for SEN students.',
+          website: 'https://www.eduqas.co.uk/qualifications/art-and-design-gcse/'
+        }
+      ]
+    }
+  };
+
+  var sub = data[currentSubject];
+  if (!sub) { setEl('boards-content', '<p style="color:var(--text2)">Board comparison not available for this subject.</p>'); return; }
+
+  var html = '';
+
+  /* Recommendation box */
+  var rec = sub.recommendation;
+  html += '<div style="background:var(--acc-l);border:2px solid var(--acc);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">' +
+      '<i class="ti ti-star" style="font-size:22px;color:var(--acc)"></i>' +
+      '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--acc-d)">Recommended for Oak Hill</div>' +
+      '<div style="font-size:20px;font-weight:700;color:var(--acc-d)">' + rec.board + '</div></div></div>' +
+    '<ul style="margin:0 0 .75rem 1.25rem">' +
+      rec.reasons.map(function(r){ return '<li style="font-size:13.5px;color:var(--acc-d);line-height:1.6;margin-bottom:.4rem">' + r + '</li>'; }).join('') +
+    '</ul>' +
+    '<p style="font-size:12px;color:var(--acc-d);background:rgba(255,255,255,0.5);border-radius:6px;padding:8px 12px;margin:0;font-style:italic">' +
+      '<strong>Note:</strong> ' + rec.caveat + '</p>' +
+    '</div>';
+
+  /* Intro */
+  html += '<div class="content-box" style="margin-bottom:1.25rem"><p style="font-size:14px;color:var(--text2);line-height:1.7;margin:0">' + sub.intro + '</p></div>';
+
+  /* Board cards */
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem">';
+  sub.boards.forEach(function(b) {
+    var isRec = b.name === rec.board;
+    html += '<div style="background:var(--surface);border:' + (isRec ? '2px solid var(--acc)' : '1px solid var(--border)') + ';border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm)">';
+
+    /* Header */
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">';
+    html += '<span class="ctag ' + b.tc + '" style="font-size:14px;padding:5px 12px">' + b.name + '</span>';
+    html += '<div><div style="font-size:11px;color:var(--text3);font-weight:500">Code: ' + b.code + '</div>';
+    if (isRec) html += '<div style="font-size:11px;font-weight:700;color:var(--acc)">⭐ Recommended</div>';
+    html += '</div>' +
+      '<a href="' + b.website + '" target="_blank" rel="noopener" style="margin-left:auto;font-size:11px;color:var(--text3);text-decoration:none;display:flex;align-items:center;gap:4px"><i class="ti ti-external-link"></i> Spec</a>';
+    html += '</div>';
+
+    /* Assessment structure */
+    html += '<div style="margin-bottom:1rem"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:.5rem">Assessment structure</div>';
+    b.structure.forEach(function(s){
+      html += '<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">' +
+          '<span style="font-size:11px;font-weight:700;color:var(--text)">' + s.component + ': ' + s.title + '</span>' +
+          '<span class="ctag ctag-g" style="margin-left:auto">' + s.weight + '</span>' +
+        '</div>' +
+        '<p style="font-size:12px;color:var(--text2);margin:0;line-height:1.5">' + s.format + '</p>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    /* Strengths */
+    html += '<div style="margin-bottom:.75rem"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#1D9E75;margin-bottom:.4rem"><i class="ti ti-check"></i> Strengths</div><ul style="margin:0 0 0 1rem;padding:0">' +
+      b.strengths.map(function(s){ return '<li style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:.25rem">' + s + '</li>'; }).join('') +
+      '</ul></div>';
+
+    /* Challenges */
+    html += '<div style="margin-bottom:.75rem"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#A32D2D;margin-bottom:.4rem"><i class="ti ti-alert-triangle"></i> Challenges</div><ul style="margin:0 0 0 1rem;padding:0">' +
+      b.challenges.map(function(c){ return '<li style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:.25rem">' + c + '</li>'; }).join('') +
+      '</ul></div>';
+
+    /* SEN note */
+    html += '<div style="background:#EEF6FF;border:1px solid #5B9BD5;border-left:3px solid #185FA5;border-radius:6px;padding:8px 10px;font-size:12px;color:#042C53;line-height:1.55">' +
+      '<strong style="display:block;margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#185FA5"><i class="ti ti-accessibility"></i> SEN suitability</strong>' + b.senNote + '</div>';
+
+    html += '</div>';
+  });
+  html += '</div>';
+
+  setEl('boards-content', html);
+}
+
+MEDIA_LESSONS
+
 function setEl(id, html) {
   var el = document.getElementById(id);
   if (el) el.innerHTML = html;
