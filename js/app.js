@@ -1416,261 +1416,292 @@ function helpSenCard(icon, title, desc) {
 
 function renderHelp() {
   var S = SUBJECTS[currentSubject];
+
+  /* ── Tab reference — every feature described ── */
+  var allTabs = [
+    { icon:'ti-chalkboard',   label:'Teach',
+      desc:'Your main classroom display. Select a topic on the left to show a topic introduction, exam focus tip, key concepts and resource links on the right. <strong>Put this on the projector</strong> during lesson input. Switch exam board in the header to update the board-specific info panel at the top.' },
+    { icon:'ti-calendar',     label:'Lessons',
+      desc:'Full 35-minute SEN-adapted lesson plans in recommended delivery order. Click any lesson card to open the full plan — you\'ll see a <strong>blue SEN Adaptations panel</strong>, timed activities, resources needed and homework. Two buttons appear: <strong>Start Timer</strong> (launches the lesson timer) and <strong>Print Plan</strong> (opens a printable PDF-ready version).' },
+    { icon:'ti-book-2',       label:'Theory',
+      desc:'Detailed theory notes with worked examples and exam tips for every topic. Use as a planning reference or project on the board during input phases. Each topic tab shows all key concepts, a worked example block and an exam tip box.' },
+    { icon:'ti-film',         label:'Set Texts / Practitioners',
+      desc:'Board-specific set texts (Media Studies) or key practitioners (Photography, Graphic Communication). <strong>Updates automatically</strong> when you change the exam board in the header. Each card shows the title, description, key analysis points and topic focus tags.' },
+    { icon:'ti-writing',      label:'Written Practice',
+      desc:'Extended written questions with full mark schemes and model answers. Filter by <strong>mark level</strong> (2, 4, 8, 12, 20), <strong>topic</strong>, and <strong>Foundation / Core / Extension</strong> difficulty pills. Each answer box has a <strong>🎤 mic button</strong> for speech-to-text dictation. Reveal mark scheme and model answer independently per question.' },
+    { icon:'ti-help-circle',  label:'Quick Quiz',
+      desc:'Multiple-choice questions with instant feedback and explanations. Filter by topic. Session scores are tracked automatically and shown in the header and Progress panel. Use as a 5-minute starter, a topic check or an exit activity.' },
+    { icon:'ti-clock',        label:'Mock Exam',
+      desc:'A timed mock examination — choose duration (10, 20, 45 or 60 minutes) and question count (10–25). Questions are randomly selected from the full bank. On submission: a GCSE grade estimate (1–9), percentage score and topic-by-topic breakdown. Results update the Progress panel.' },
+    { icon:'ti-vocabulary',   label:'Glossary',
+      desc:'Searchable key terminology with definitions, usage examples and category filters. Updates with subject. Project on screen when a term comes up — or let students search on their own device. All terms link to the topics they appear in.' },
+    { icon:'ti-school',       label:'Exam Boards',
+      desc:'Full comparison of AQA, OCR and Eduqas for this subject — assessment structure, component weightings, strengths, challenges and a SEN suitability note for each. Includes a highlighted recommendation for Oak Hill School with specific reasoning.' },
+    { icon:'ti-printer',      label:'Worksheets',
+      desc:'Printable student activities including Key Terms Match-Up, Text Analysis Frame, Theory Application and Exam Question Practice. Preview in-app, then Ctrl+P / Cmd+P to print. Worksheets auto-include the school name, subject, exam board and today\'s date.' },
+    { icon:'ti-chart-pie',    label:'Progress',
+      desc:'Session-based tracking: questions attempted, correct answers, overall accuracy and a topic performance bar chart. Saved in the browser (localStorage). Use <strong>Clear session data</strong> at the start of a new term or for a new class group.' },
+    { icon:'ti-users',        label:'Students',
+      desc:'Full student management and evaluation system. Add, edit and delete students. Log evaluations (quiz, mock, written, portfolio, verbal, homework, classwork) with scores, grades, topic focus and three dictation-enabled feedback fields. View each student\'s score trend, topic breakdown and full evaluation history. Print individual student reports, a class report, or export all data as a CSV spreadsheet.' },
+    { icon:'ti-presentation', label:'Classroom Mode',
+      desc:'Full-screen dark overlay for the projector. Shows the current topic\'s concepts in large high-contrast text. Use Previous / Next buttons to navigate topics. Activate from the black subject bar at the top. <strong>Click Exit or the X to return to the app.</strong>' }
+  ];
+
+  /* ── Lesson sequences per subject ── */
   var sequences = {
     media: {
-      overview: 'The 10 Media Studies lessons are designed for 35-minute slots with SEN adaptations throughout. The sequence moves from accessible, familiar concepts through analytical frameworks and theory, building to timed exam practice. Teach in this order to build vocabulary and confidence progressively.',
+      overview: 'The 10 Media Studies lessons are designed for 35-minute slots with SEN adaptations built in. The sequence moves from accessible, familiar concepts through analytical frameworks and theory, building to timed exam practice. Teach them in this order — each lesson assumes vocabulary from the one before.',
       phases: [
-        { label: 'Phase 1 — Foundation', colour: 'ctag-g',
-          desc: 'Build core vocabulary. No theory names yet — just denotation, connotation and the four pillars. Students leave able to describe what they see and begin interpreting meaning.',
-          lessons: [
-            { num:1, title:'What is Media Studies?', tab:'Teach', tip:'Use the Teach panel on the projector. Let students pick media they actually use. Validate their existing knowledge — no wrong answers.' },
-            { num:2, title:'What Can You See? Denotation', tab:'Teach + Worksheets', tip:'Print the Text Analysis Frame. Model denotation 3 times before asking students to try alone. Insist: no opinions yet.' },
-            { num:3, title:'What Does It Mean? Connotation', tab:'Teach + Worksheets', tip:'Reuse the same images from Lesson 2 — familiarity reduces anxiety. The colour card activity is kinaesthetic and high-engagement.' }
+        { label:'Phase 1 — Foundation (L1–3)', colour:'ctag-g', desc:'Build the core vocabulary: denotation, connotation and the four pillars of Media Studies. No theory names yet — concept first, label second.',
+          rows:[
+            { n:1, title:'What is Media Studies?',           tabs:'Teach',                tip:'Use the Teach panel on the projector. Start from media students already use — TikTok, Netflix, gaming. No wrong answers.' },
+            { n:2, title:'What Can You See? Denotation',     tabs:'Teach + Worksheets',   tip:'Print the Text Analysis Frame. Model denotation three times before students try alone. Insist: no opinions yet.' },
+            { n:3, title:'What Does It Mean? Connotation',   tabs:'Teach + Worksheets',   tip:'Reuse the same images from Lesson 2 — familiarity lowers anxiety. The colour card activity is kinaesthetic and high-engagement.' }
           ]
         },
-        { label: 'Phase 2 — Representation & Industry', colour: 'ctag-a',
-          desc: 'Introduce the social and institutional dimensions of media. Frame these lessons carefully — they address sensitive territory around stereotypes and power.',
-          lessons: [
-            { num:4, title:'Who Is Being Shown? Representation', tab:'Teach + Theory', tip:'The card sort is lower-stakes than writing. Begin with oral contributions and build to written sentences using the provided frames.' },
-            { num:5, title:'Who Made It and Why? Industries', tab:'Teach + Theory', tip:'The logo quiz is a great starter — every student knows these brands. Keep the BBC/commercial distinction simple: who pays? who decides?' }
+        { label:'Phase 2 — Representation & Industry (L4–5)', colour:'ctag-a', desc:'Introduce how people are shown and who controls what we see. Handle representation carefully — it touches students\' own identities.',
+          rows:[
+            { n:4, title:'Who Is Being Shown? Representation', tabs:'Teach + Theory',      tip:'The card sort is lower-stakes than writing. Oral contributions first, written sentences second using provided frames.' },
+            { n:5, title:'Who Made It and Why? Industries',    tabs:'Teach + Theory',      tip:'The logo quiz is a great opener — every student knows these brands. Keep BBC/commercial simple: who pays? who decides?' }
           ]
         },
-        { label: 'Phase 3 — Audiences & Theory', colour: 'ctag-p',
-          desc: 'Build the theoretical language needed for the exam. Connect every theory to familiar examples before introducing the theorist\'s name — concept first, label second.',
-          lessons: [
-            { num:6, title:'Who Is Watching? Audiences', tab:'Teach + Theory', tip:'The hands-up survey is fast and engaging. Run the Quiz panel at the end filtered to Audiences for quick consolidation.' },
-            { num:7, title:'Theories Made Simple — Todorov', tab:'Theory + Quiz', tip:'Story mountain before any theory language. Students map a film they know — THEN reveal the theorist\'s name. Works with Disney or superhero films.' },
-            { num:8, title:'The Male Gaze', tab:'Theory + Set Texts', tip:'Frame this carefully at the start. Use Set Texts panel to connect to your board\'s prescribed texts. Traffic light response system removes writing pressure.' }
+        { label:'Phase 3 — Audiences & Theory (L6–8)', colour:'ctag-p', desc:'Build the theoretical language needed for the exam. Introduce the concept before the theorist\'s name — always.',
+          rows:[
+            { n:6, title:'Who Is Watching? Audiences',       tabs:'Teach + Theory + Quiz', tip:'Hands-up survey works well. Filter the Quiz panel to Audiences for a 5-minute exit activity.' },
+            { n:7, title:'Theories — Todorov\'s Story Shape', tabs:'Theory + Quiz',          tip:'Story mountain before any theory names. Students map a film they know — THEN reveal Todorov. Disney/superhero films work perfectly.' },
+            { n:8, title:'The Male Gaze',                    tabs:'Theory + Set Texts',    tip:'Frame this carefully at the start. Use Set Texts to connect to board-specific texts. Traffic light response removes writing pressure.' }
           ]
         },
-        { label: 'Phase 4 — Application & Assessment', colour: 'ctag-r',
-          desc: 'Apply all prior learning to a specific text, then practise exam technique in a low-stakes supported environment.',
-          lessons: [
-            { num:9, title:'Set Text Close-Up', tab:'Teach + Set Texts', tip:'Switch to your exam board\'s set text in Set Texts. Print the cover for students. Colour-coded annotation gives three simultaneous focuses without writing pressure.' },
-            { num:10, title:'Mock Exam Practice', tab:'Written Practice + Mock Exam', tip:'Use Written Practice for short questions first. Show model answer on screen before students write. Normalise imperfection — this is training, not judgment.' }
+        { label:'Phase 4 — Application & Exam Practice (L9–10)', colour:'ctag-r', desc:'Apply everything to a specific set text, then practise exam technique in a supported, low-stakes environment.',
+          rows:[
+            { n:9,  title:'Set Text Close-Up',            tabs:'Teach + Set Texts',            tip:'Switch to your board\'s set text in the Set Texts panel. Print the cover. Colour-coded annotation gives three simultaneous focuses.' },
+            { n:10, title:'Mock Exam Practice',           tabs:'Written Practice + Mock Exam', tip:'Use Written Practice for short questions first. Show a model answer on screen before students write. Frame it as training, not a test.' }
           ]
         }
       ],
-      ongoing: ['Project the Glossary panel when a term comes up during discussion — students can look it up in real time','Run a 5-question Quick Quiz at the end of any lesson as an exit activity, filtered to today\'s topic','Use Classroom Mode (top bar) to display topic concepts full-screen on the projector','Print worksheets from the Worksheets panel for any lesson needing a structured activity']
+      ongoing:['Project the Glossary panel when a term comes up in discussion','Run a 5-question Quick Quiz filtered to today\'s topic as an exit activity','Use Classroom Mode (subject bar) to display concepts full-screen on the projector','Log student performance in the Students panel after assessments']
     },
     photo: {
-      overview: 'The 9 Photography lessons move from course structure through technical skills, contextual studies, ethics and process, to ESA preparation. Technical skills are taught early and practised throughout. This order ensures students have technical confidence before beginning their personal project.',
+      overview: 'The 9 Photography lessons move from course structure through technical skills, contextual studies, ethics and portfolio process to ESA preparation. Technical confidence comes first — students need camera skills before they can make meaningful images.',
       phases: [
-        { label: 'Phase 1 — Understanding the Course', colour: 'ctag-g',
-          desc: 'Demystify the GCSE before a camera is touched. Students who understand what is being assessed make better creative decisions throughout the course.',
-          lessons: [
-            { num:1, title:'What is Photography GCSE?', tab:'Teach + Lessons', tip:'The "which gets marks?" starter (all four images do) immediately corrects the misconception that only the final photo matters. Display the 4 AO poster on the projector.' }
+        { label:'Phase 1 — Course Structure (L1)', colour:'ctag-g', desc:'Demystify the GCSE before any camera work. Students who understand the AOs make better creative decisions throughout.',
+          rows:[{ n:1, title:'What is Photography GCSE?', tabs:'Teach + Lessons', tip:'The "which image gets marks?" starter (all four do) immediately corrects the misconception that only the final photo matters.' }]
+        },
+        { label:'Phase 2 — Technical Foundations (L2–3)', colour:'ctag-a', desc:'Teach camera controls and composition before the personal project begins. Practical and hands-on throughout.',
+          rows:[
+            { n:2, title:'The Exposure Triangle',             tabs:'Teach + Theory',      tip:'Connect a camera to the projector — change settings live. Students learn from seeing effects, not reading about them.' },
+            { n:3, title:'Composition & the Decisive Moment', tabs:'Teach + Worksheets',  tip:'Get outside. 15 minutes in the school grounds with smartphones beats 35 minutes describing composition indoors.' }
           ]
         },
-        { label: 'Phase 2 — Technical Foundations', colour: 'ctag-a',
-          desc: 'Teach camera controls and compositional thinking before the personal project begins. Practical and hands-on — minimise reading and writing at this stage.',
-          lessons: [
-            { num:2, title:'The Exposure Triangle', tab:'Teach + Theory', tip:'Connect a camera to the projector if possible — change settings live. Students learn faster from seeing the effect than reading about it.' },
-            { num:3, title:'Composition & the Decisive Moment', tab:'Teach + Worksheets', tip:'Get outside. Even 15 minutes in school grounds with smartphones produces better learning than 35 minutes indoors describing composition.' }
+        { label:'Phase 3 — Contextual Studies (L4–6)', colour:'ctag-p', desc:'Introduce the photographers students must reference in their portfolio (AO1). Teach analytical writing before students need it independently.',
+          rows:[
+            { n:4, title:'Dorothea Lange — Close Analysis', tabs:'Teach + Practitioners', tip:'Tell the story BEFORE showing the image — historical context makes the photograph land differently.' },
+            { n:5, title:'Photographic Genres',              tabs:'Teach + Practitioners', tip:'Card sort first — students reveal their own categorisation logic, allowing misconceptions to be corrected through discussion.' },
+            { n:6, title:'Annotating a Practitioner',        tabs:'Worksheets',            tip:'Print the Practitioner Analysis Frame. The 5-step timed framework removes the blank-page problem completely.' }
           ]
         },
-        { label: 'Phase 3 — Contextual Studies', colour: 'ctag-p',
-          desc: 'Introduce the photographers students need to reference in their portfolio (AO1). Teach analytical writing frameworks before students need to use them independently.',
-          lessons: [
-            { num:4, title:'Looking at Photographers — Dorothea Lange', tab:'Teach + Practitioners', tip:'Tell the story before showing the image — historical context makes the photograph land differently. Use the Practitioners panel on the projector.' },
-            { num:5, title:'Photographic Genres', tab:'Teach + Practitioners', tip:'The card sort reveals students\' categorisation logic. You can correct misconceptions through discussion rather than direct correction.' },
-            { num:6, title:'Annotating a Practitioner', tab:'Worksheets + Practitioners', tip:'Print the Practitioner Analysis Frame. The 5-step framework with a timer removes the blank-page problem. Collect for written feedback.' }
+        { label:'Phase 4 — Ethics & Process (L7–8)', colour:'ctag-b', desc:'Prepare students to make thoughtful ethical choices and document their process rigorously for AO3.',
+          rows:[
+            { n:7, title:'Ethics in Photography', tabs:'Theory',             tip:'Discussion-led — minimal writing. The "apply to your own work" box connects directly to AO1 evidence in portfolios.' },
+            { n:8, title:'Contact Sheets',        tabs:'Worksheets',         tip:'Show blank vs annotated contact sheet side by side. Set the rule: one sentence minimum per image on every contact sheet from now on.' }
           ]
         },
-        { label: 'Phase 4 — Ethics & Process', colour: 'ctag-b',
-          desc: 'Prepare students to make thoughtful ethical choices in their own practice and document their process rigorously for AO3.',
-          lessons: [
-            { num:7, title:'Ethics in Photography', tab:'Theory', tip:'Discussion-led — keep writing minimal. The "apply to your own work" section connects directly to AO1 evidence in portfolios.' },
-            { num:8, title:'Contact Sheets', tab:'Worksheets + Progress', tip:'The blank vs annotated comparison immediately shows the difference. Set a rule: one sentence minimum per image on every contact sheet from now on.' }
-          ]
-        },
-        { label: 'Phase 5 — ESA Preparation', colour: 'ctag-r',
-          desc: 'Prepare students for the Externally Set Assignment with confident exploration of the starting point — not premature commitment.',
-          lessons: [
-            { num:9, title:'ESA — Choosing Your Starting Point', tab:'Teach + Lessons', tip:'Address anxiety explicitly and early. The 8-minute mind-map explosion (quantity, no editing) is liberating. Small group sharing surfaces ideas students would not generate alone.' }
-          ]
+        { label:'Phase 5 — ESA Preparation (L9)', colour:'ctag-r', desc:'Build confidence around the Externally Set Assignment. Exploration first — not premature commitment.',
+          rows:[{ n:9, title:'ESA — Choosing Your Starting Point', tabs:'Teach + Lessons', tip:'Address anxiety explicitly at the start. The 8-minute mind-map explosion (quantity, no editing) is liberating for stuck students.' }]
         }
       ],
-      ongoing: ['Use the Practitioners panel to display photographers\' work on the projector during contextual discussions','Run the Quick Quiz at the end of any practical lesson to consolidate vocabulary','Use Classroom Mode to display AO definitions or compositional diagrams during practical sessions','Print Contact Sheet annotation frames from Worksheets for every shoot']
+      ongoing:['Use the Practitioners panel to display photographer work on the projector during contextual discussions','Run the Quick Quiz at the end of any practical lesson to consolidate vocabulary','Print Contact Sheet annotation frames from the Worksheets panel for every shoot','Log portfolio review evaluations in the Students panel']
     },
     graphic: {
-      overview: 'The 9 Graphic Communication lessons move from identifying design in the everyday world through typography, layout, colour, branding, practitioner research, the full design process and portfolio review. This order ensures students have vocabulary and a toolkit before beginning an extended project.',
+      overview: 'The 9 Graphic Communication lessons move from spotting design in everyday life through typography, layout, colour, branding, practitioner research and the full design process to portfolio review. Students need vocabulary and a toolkit before starting an extended project.',
       phases: [
-        { label: 'Phase 1 — Seeing Design', colour: 'ctag-g',
-          desc: 'Open students\' eyes to graphic design as a constant presence in their world. The goal is to shift perception — from passive consumer to active observer.',
-          lessons: [
-            { num:1, title:'What is Graphic Communication?', tab:'Teach + Practitioners', tip:'The logo quiz is a brilliant opener — no wrong answers, immediately engaging. Cereal box analysis generates 10+ design observations per pair with no writing pressure.' }
+        { label:'Phase 1 — Seeing Design (L1)', colour:'ctag-g', desc:'Shift students from passive consumers to active observers of design decisions. The goal is perception, not production.',
+          rows:[{ n:1, title:'What is Graphic Communication?', tabs:'Teach + Practitioners', tip:'Logo quiz opener — no wrong answers, immediately engaging. Cereal box analysis produces 10+ observations per pair with no writing.' }]
+        },
+        { label:'Phase 2 — Typography & Layout (L2–4)', colour:'ctag-a', desc:'Build the two most fundamental graphic design skills. These underpin every subsequent design decision.',
+          rows:[
+            { n:2, title:'Typefaces — Why Fonts Matter',   tabs:'Teach + Theory',              tip:'HORROR in multiple fonts is an immediately memorable opener. Give the reference card — no memorisation required.' },
+            { n:3, title:'Layout — Making Things Clear',   tabs:'Teach + Theory + Worksheets',  tip:'Print the "bad flyer" from Worksheets. The redesign task shows white space and hierarchy better than any explanation.' },
+            { n:4, title:'Colour in Design',               tabs:'Teach + Theory',              tip:'The colour auction is playful. Keep CMYK vs RGB as a simple rule — do not over-explain colour theory.' }
           ]
         },
-        { label: 'Phase 2 — Typography & Layout', colour: 'ctag-a',
-          desc: 'Build the two most fundamental graphic design skills. These underpin every subsequent design decision students make.',
-          lessons: [
-            { num:2, title:'Typefaces — Why Fonts Matter', tab:'Teach + Theory', tip:'The HORROR word in multiple fonts is immediately memorable. Provide the reference card — students should not need to memorise typeface categories.' },
-            { num:3, title:'Layout — Making Things Clear', tab:'Teach + Theory + Worksheets', tip:'Print the "bad flyer" from Worksheets. The redesign task is practical, creative and immediately shows the power of hierarchy and white space.' },
-            { num:4, title:'Colour in Design', tab:'Teach + Theory', tip:'The colour auction is playful. Keep CMYK vs RGB as a simple rule (print = CMYK, screen = RGB) — do not over-explain the colour theory.' }
+        { label:'Phase 3 — Branding & Practitioners (L5–6)', colour:'ctag-p', desc:'Connect design principles to professional practice. Students analyse existing work (AO1) and begin generating their own ideas (AO2).',
+          rows:[
+            { n:5, title:'Logo Design',                     tabs:'Teach + Practitioners + Worksheets', tip:'The thumbnail challenge is the most important activity. Set a timer, insist on 12 thumbnails, forbid erasing.' },
+            { n:6, title:'Looking at Designers — Saul Bass', tabs:'Practitioners + Theory',             tip:'The 5-step timed annotation removes the blank-page problem. Collect and give written feedback — first substantial AO1 evidence.' }
           ]
         },
-        { label: 'Phase 3 — Branding & Practitioners', colour: 'ctag-p',
-          desc: 'Connect design principles to professional practice. Students learn to analyse existing work (AO1) and begin generating ideas of their own (AO2).',
-          lessons: [
-            { num:5, title:'Logo Design', tab:'Teach + Practitioners + Worksheets', tip:'The thumbnail challenge is the most important activity. Set a timer, insist on 12 thumbnails, explicitly forbid erasing. This teaches the professional design process better than any explanation.' },
-            { num:6, title:'Looking at Designers — Saul Bass', tab:'Practitioners + Theory', tip:'The 5-step annotation with timed stages removes the blank-page problem. This is likely to be the first substantial AO1 evidence in sketchbooks — collect and give written feedback.' }
+        { label:'Phase 4 — Design Process (L7–8)', colour:'ctag-b', desc:'Teach the professional design process explicitly — most students don\'t know what "doing design" actually involves.',
+          rows:[
+            { n:7, title:'The Design Process',     tabs:'Teach + Worksheets + Theory', tip:'Display the process map throughout. Refer to it at each stage: "We are now in the ROUGH phase." Knowing where you are helps.' },
+            { n:8, title:'Grids and Alignment',    tabs:'Theory + Teach',              tip:'Reveal the grid on a real magazine — the moment students see the invisible structure is genuinely revelatory.' }
           ]
         },
-        { label: 'Phase 4 — Design Process', colour: 'ctag-b',
-          desc: 'Teach the full professional design process explicitly. Many students do not know what "doing design" actually involves — this makes it concrete and learnable.',
-          lessons: [
-            { num:7, title:'The Design Process', tab:'Teach + Worksheets + Theory', tip:'Display the process map on the projector throughout. Refer to it at each stage: "We are now in the ROUGH stage." Students who know where they are make better decisions.' },
-            { num:8, title:'Grids and Alignment', tab:'Theory + Teach', tip:'Reveal the grid on a real magazine spread first — the moment students see the invisible structure is genuinely revelatory.' }
-          ]
-        },
-        { label: 'Phase 5 — Portfolio Review', colour: 'ctag-r',
-          desc: 'A structured self-assessment session to identify gaps before any assessment deadline.',
-          lessons: [
-            { num:9, title:'Portfolio Review', tab:'Progress + Lessons', tip:'The 45-second check-in per student requires efficient circulation — have a class list ready. Action cards stuck inside the sketchbook cover are a simple but effective accountability tool.' }
-          ]
+        { label:'Phase 5 — Portfolio Review (L9)', colour:'ctag-r', desc:'A structured self-assessment to identify gaps before any deadline. RAG system makes reflection honest without being threatening.',
+          rows:[{ n:9, title:'Portfolio Review', tabs:'Progress + Lessons', tip:'45-second teacher check-in per student requires efficient circulation — have a class list ready. Action cards in the sketchbook cover are a simple accountability tool.' }]
         }
       ],
-      ongoing: ['Use the Practitioners panel to display designer work on the projector during contextual discussions','Run the Quick Quiz after lessons 2, 4 and 6 to consolidate vocabulary','Print thumbnailing grid and brand audit worksheets from the Worksheets panel','Use the Progress panel to track quiz performance and identify vocabulary gaps']
+      ongoing:['Use the Practitioners panel to display designer work on the projector during contextual discussions','Run the Quick Quiz after lessons 2, 4 and 6 to consolidate vocabulary','Print thumbnail grid and brand audit worksheets from the Worksheets panel','Use Students panel to log portfolio review grades and feedback']
     }
   };
 
   var seq = sequences[currentSubject];
-  if (!seq) { setEl('help-content','<p style="color:var(--text2)">Help not available.</p>'); return; }
-
-  var tabDefs = [
-    { icon:'ti-chalkboard',   label:'Teach',           desc:'Your main classroom display. Select a topic on the left to show concepts, examples and resource links. <strong>Put this on the projector</strong> during lesson input. The board info panel shows specification-specific notes for your selected exam board.' },
-    { icon:'ti-calendar',     label:'Lessons',          desc:'Full 35-minute SEN-adapted lesson plans. Click any lesson card to see the full plan with timed activities, a <strong>blue SEN Adaptations panel</strong>, resources needed and homework. Lessons are numbered in the recommended delivery order.' },
-    { icon:'ti-book-2',       label:'Theory',           desc:'Detailed theory notes with worked examples and exam tips for every topic. Use as a planning reference or display on the projector during input phases. Each topic tab shows all concepts with a worked example and an exam tip.' },
-    { icon:'ti-film',         label:'Set Texts / Practitioners', desc:'Board-specific set texts (Media Studies) or key practitioners (Photography, Graphic Communication). <strong>Updates automatically</strong> when you change exam board in the header. Each card shows key analysis points and topic focus areas.' },
-    { icon:'ti-writing',      label:'Written Practice', desc:'Extended written questions with full mark schemes and model answers. Filter by marks (2, 4, 8, 12, 20) or topic. Students write in the text area, then reveal the mark scheme. Use Shuffle to randomise order.' },
-    { icon:'ti-help-circle',  label:'Quick Quiz',       desc:'Multiple-choice questions with instant feedback and explanations. Filter by topic for targeted revision. Session scores are tracked automatically — visible in the header and in the Progress panel. Use as a 5-minute starter or exit activity.' },
-    { icon:'ti-clock',        label:'Mock Exam',        desc:'Timed mock exam with configurable duration (10–60 min) and question count (10–25). On submission, students receive a GCSE grade estimate (1–9), a percentage and a topic-by-topic breakdown. Results feed the Progress panel.' },
-    { icon:'ti-vocabulary',   label:'Glossary',         desc:'Searchable key terminology with definitions, usage examples and category filters. Changes with subject. <strong>Project on screen</strong> when a term comes up in discussion. Students can search on a device during independent work.' },
-    { icon:'ti-school',       label:'Exam Boards',      desc:'Detailed comparison of AQA, OCR and Eduqas for this subject — structure, weighting, strengths, challenges and SEN suitability. Includes a highlighted recommendation for Oak Hill School.' },
-    { icon:'ti-printer',      label:'Worksheets',       desc:'Printable student activities including Key Terms Match-Up, Text Analysis Frame, Theory Application and Exam Question Practice. Preview then Ctrl+P to print. Worksheets auto-include the school name, subject, exam board and today\'s date.' },
-    { icon:'ti-chart-pie',    label:'Progress',         desc:'Session-based tracking: total questions, correct answers, accuracy and a topic performance bar chart. Saved automatically in the browser. Use <strong>Clear session data</strong> at the start of a new term or class group.' },
-    { icon:'ti-presentation', label:'Classroom Mode',   desc:'Full-screen dark overlay for the projector. Shows current topic concepts in large high-contrast text. Navigate topics with Previous / Next. Activate from the top subject bar. <strong>Click Exit or press Escape to return.</strong>' }
-  ];
-
   var html = '';
 
-  /* Hero */
+  /* ── Hero ── */
   html += '<div class="help-hero">' +
     '<div class="help-hero-badge">Oak Hill Creative GCSEs — ' + S.name + '</div>' +
     '<h1>Teacher Guide</h1>' +
-    '<p>How to use every part of this platform, how to deliver each lesson and the recommended teaching order for ' + S.name + ' GCSE.</p>' +
+    '<p>Everything you need to use this platform confidently — features reference, classroom setup, lesson delivery order, SEN support, student evaluation and time-saving shortcuts. Updated for v8.</p>' +
     '</div>';
 
-  /* Quick start cards */
-  html += '<div class="s-label" style="margin-bottom:.75rem">Jump to section</div><div class="help-quickstart">';
+  /* ── Quick-jump cards ── */
   var qsCards = [
-    { icon:'ti-bolt',          title:'Getting started',    desc:'First steps with the app',         id:'hs-start' },
-    { icon:'ti-layout-grid',   title:'All features',       desc:'What every tab does',               id:'hs-tabs' },
-    { icon:'ti-presentation',  title:'Classroom use',      desc:'Projector & device tips',           id:'hs-classroom' },
-    { icon:'ti-list-numbers',  title:'Lesson order',       desc:'Recommended teaching sequence',     id:'hs-sequence' },
-    { icon:'ti-accessibility', title:'SEN guidance',       desc:'Built-in adaptations & support',   id:'hs-sen' },
-    { icon:'ti-keyboard',      title:'Tips & shortcuts',   desc:'Save time every lesson',            id:'hs-tips' }
+    { icon:'ti-bolt',          title:'Getting started',        desc:'First steps, 2-minute setup',       id:'hs-start' },
+    { icon:'ti-layout-grid',   title:'All features',           desc:'What every tab does',                id:'hs-tabs' },
+    { icon:'ti-presentation',  title:'Classroom use',          desc:'Projector, devices, workflows',      id:'hs-classroom' },
+    { icon:'ti-list-numbers',  title:'Lesson order',           desc:'Delivery sequence for ' + S.name,   id:'hs-sequence' },
+    { icon:'ti-users',         title:'Student evaluation',     desc:'Add students, log assessments',      id:'hs-students' },
+    { icon:'ti-accessibility', title:'SEN support',            desc:'Built-in adaptations',               id:'hs-sen' },
+    { icon:'ti-keyboard',      title:'Tips & shortcuts',       desc:'Save time every lesson',             id:'hs-tips' }
   ];
+  html += '<div class="s-label" style="margin-bottom:.75rem">Jump to section</div><div class="help-quickstart">';
   html += qsCards.map(function(c){
     return '<button class="help-qs-card" onclick="openHelpSection(\'' + c.id + '\')">' +
       '<div class="help-qs-icon"><i class="ti ' + c.icon + '"></i></div>' +
       '<h4>' + c.title + '</h4><p>' + c.desc + '</p></button>';
   }).join('') + '</div>';
 
-  /* Section 1 — Getting Started */
-  html += helpSection('hs-start','ti-bolt','background:var(--green-l);color:var(--green)','Getting Started','Open the app, pick your subject and board, and you\'re ready to teach.',
+  /* ── Section 1: Getting Started ── */
+  html += helpSection('hs-start','ti-bolt','background:var(--green-l);color:var(--green)','Getting Started','Open the app, pick your subject and board, and you\'re ready to teach in under 2 minutes.',
     '<div class="help-sequence">' +
-    helpStep(1,'Open index.html in any browser','The app runs entirely offline — no internet required once downloaded. Double-click <strong>oakhill/index.html</strong>. Use Chrome, Edge or Firefox for best results.') +
-    helpStep(2,'Select your subject','Click <strong>Media Studies</strong>, <strong>Photography</strong> or <strong>Graphic Communication</strong> in the black bar at the top. Everything updates instantly — topics, lessons, quiz questions, set texts, glossary.','The subject bar also has Classroom Mode for projector display') +
-    helpStep(3,'Set your exam board','Use the <strong>Exam Board dropdown</strong> in the top-right header. This updates the board info in Teach, the set texts and practitioner content. Change it any time — progress data is not affected.') +
-    helpStep(4,'Start with the Lessons tab','The Lessons tab contains 35-minute lesson plans in recommended order. Open Lesson 1 and use it as your delivery guide for the first session.','Each lesson has a blue SEN Adaptations panel — read it before you teach') +
-    helpStep(5,'Put the Teach panel on the projector','During classroom input, switch to Teach and select the relevant topic. Key concepts display clearly on screen. Use Classroom Mode (top bar) for a clean full-screen view.') +
+    helpStep(1,'Open index.html in Chrome or Edge','Double-click the <strong>index.html</strong> file inside the oakhill folder. The platform runs entirely offline — no internet needed. Use Chrome or Edge for full speech-to-text support.','Do a hard refresh (Ctrl+Shift+R / Cmd+Shift+R) if you see errors after updating files') +
+    helpStep(2,'Select your subject','Click <strong>Media Studies</strong>, <strong>Photography</strong> or <strong>Graphic Communication</strong> in the black bar at the top. Everything updates instantly — topics, lessons, quiz questions, glossary, set texts, exam board comparison.') +
+    helpStep(3,'Set your exam board','Use the <strong>Exam Board dropdown</strong> in the top-right header. This updates the board info in Teach, the set texts panel and the practitioner content. Change it at any time.','The Exam Boards tab has a full AQA vs OCR vs Eduqas comparison with an Oak Hill recommendation') +
+    helpStep(4,'Set your exam date','Click <strong>"Set exam date"</strong> in the header to enter your GCSE exam date. A live countdown appears (amber inside 4 weeks, red inside 7 days) and persists between sessions.') +
+    helpStep(5,'Open a lesson plan','Go to the Lessons tab. Click Lesson 1 to open the full plan. You\'ll see timed activities, the SEN adaptations box, resources needed and homework. Click <strong>Start Timer</strong> to launch the lesson countdown widget.','The floating lesson timer shows current activity, time remaining and progress dots') +
+    helpStep(6,'Put the Teach panel on the projector','Switch to Teach, select today\'s topic on the left. Key concepts display with their intro and exam focus box. For a cleaner projector view use <strong>Classroom Mode</strong> (button in the top bar).') +
     '</div>' +
-    '<div class="help-tip info"><i class="ti ti-wifi-off"></i><div><strong>Works offline:</strong> Once downloaded and opened, the platform needs no internet. The only exception is external resource links — those open in a new tab and require a connection.</div></div>'
+    '<div class="help-tip info"><i class="ti ti-wifi-off"></i><div><strong>Works completely offline.</strong> Once downloaded, no internet is needed. The only exception is external resource links — those open in a new tab and need a connection.</div></div>'
   );
 
-  /* Section 2 — All Features */
-  html += helpSection('hs-tabs','ti-layout-grid','background:var(--purple-l);color:var(--purple)','All Features — What Every Tab Does','A complete reference for every panel and what to use it for.',
-    tabDefs.map(function(t){
+  /* ── Section 2: All Features ── */
+  html += helpSection('hs-tabs','ti-layout-grid','background:var(--purple-l);color:var(--purple)','All Features — What Every Tab Does','A complete reference for every panel, tool and feature in the platform.',
+    allTabs.map(function(t){
       return '<div class="help-feature-row">' +
         '<div class="help-feature-label"><i class="ti ' + t.icon + '"></i>' + t.label + '</div>' +
         '<div class="help-feature-desc">' + t.desc + '</div></div>';
-    }).join('')
+    }).join('') +
+    '<div style="margin-top:1rem">' +
+    '<div class="s-label" style="margin-bottom:.5rem">Header tools</div>' +
+    [
+      { icon:'ti-calendar-event', label:'Exam countdown',    desc:'Click "Set exam date" to enter your GCSE exam date and a label. A live countdown appears in the header — amber inside 4 weeks, red inside 7 days. Persists between sessions.' },
+      { icon:'ti-notes',          label:'Teacher Notes (🗒)',  desc:'Click the notes icon to open a sticky yellow notepad pinned to the right of the screen. Type freely or tap the <strong>mic button</strong> to dictate. Notes save automatically in the browser and persist between sessions. Print with one click.' },
+      { icon:'ti-presentation',   label:'Classroom Mode',    desc:'Button in the black subject bar. Opens a full-screen dark overlay with the current topic in large text for projector display. Navigate topics with Previous / Next. Press X or Exit to return.' }
+    ].map(function(t){
+      return '<div class="help-feature-row">' +
+        '<div class="help-feature-label"><i class="ti ' + t.icon + '"></i>' + t.label + '</div>' +
+        '<div class="help-feature-desc">' + t.desc + '</div></div>';
+    }).join('') +
+    '</div>'
   );
 
-  /* Section 3 — Classroom Use */
-  html += helpSection('hs-classroom','ti-presentation','background:#1A2235;color:#7EC8E3','Using the App in the Classroom','Projector display, student devices and different lesson formats.',
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;margin-bottom:1rem">' +
-    helpInfoCard('ti-device-desktop','Teacher projector only','The most common setup. Open the app on your laptop, connect to the projector, and navigate panels as you teach. Use Classroom Mode for concept display. Use Worksheets + print for student activities.') +
-    helpInfoCard('ti-device-mobile','Student devices (BYOD)','Students open index.html on their own devices. The app is fully mobile-responsive. Quiz panel works well for independent practice — each student tracks their own score.') +
+  /* ── Section 3: Classroom Use ── */
+  html += helpSection('hs-classroom','ti-presentation','background:#1A2235;color:#7EC8E3','Using the App in the Classroom','Projector display, student devices, lesson timer and different classroom setups.',
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem;margin-bottom:1rem">' +
+    helpInfoCard('ti-device-desktop','Teacher projector only','The most common setup. Open on your laptop, connect to the projector, navigate panels as you teach. Use Classroom Mode for concept display, Lessons for your delivery guide, Worksheets + print for student activities.') +
+    helpInfoCard('ti-device-mobile','Student devices (BYOD)','Students open index.html on their own phone or tablet. Written Practice works well for independent work — each textarea has a mic button for dictation. Quiz panel lets each student track their own score.') +
     helpInfoCard('ti-devices','Shared school computers','Copy the oakhill folder to the school network. Students open index.html from the shared drive. Progress tracking uses localStorage — each device tracks independently.') +
     '</div>' +
-    '<div class="help-tip"><i class="ti ti-bulb"></i><div><strong>Best classroom workflow:</strong> Keep the app open on the projector throughout the lesson. Switch tabs as you move through phases — Teach (input) → Worksheets (activity) → Quiz (exit). Students see your navigation and learn the platform structure.</div></div>' +
-    '<div class="help-tip info"><i class="ti ti-presentation"></i><div><strong>Classroom Mode tips:</strong> Activate before the lesson starts. Use Previous / Next to walk through topics. The dark background and large white text works well even in poorly blacked-out rooms.</div></div>'
+    '<div class="s-label" style="margin-bottom:.5rem">Lesson Timer — how it works</div>' +
+    '<div class="help-tip success"><i class="ti ti-clock"></i><div>Open a lesson detail in the Lessons tab and click <strong>Start Timer</strong>. A floating dark widget appears in the bottom-right corner showing the current activity name, a countdown clock (amber at 2 min, red at 1 min), a progress bar and navigation dots. Use <strong>▶/⏸</strong> to pause, <strong>⏭</strong> to skip to the next activity. The timer automatically advances through all activities in order.</div></div>' +
+    '<div class="help-tip"><i class="ti ti-bulb"></i><div><strong>Best classroom workflow:</strong> Keep the app open on the projector throughout. Switch tabs as you move through lesson phases — <strong>Teach</strong> (input) → <strong>Worksheets</strong> (activity) → <strong>Quiz</strong> (exit). The lesson timer runs in the corner so you never need to watch the clock.</div></div>'
   );
 
-  /* Section 4 — Lesson Order */
-  var phaseHTML = '<p style="font-size:13.5px;color:var(--text2);line-height:1.7;margin-bottom:1.25rem">' + seq.overview + '</p>';
+  /* ── Section 4: Lesson Order ── */
+  var phaseHTML = '<p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:1.25rem">' + seq.overview + '</p>';
   seq.phases.forEach(function(phase){
     phaseHTML += '<div style="margin-bottom:1.5rem">' +
       '<div style="margin-bottom:.6rem"><span class="ctag ' + phase.colour + '">' + phase.label + '</span></div>' +
       '<p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:.75rem">' + phase.desc + '</p>' +
       '<table class="help-lesson-table"><thead><tr><th>No.</th><th>Title</th><th>Use these tabs</th><th>Key delivery tip</th></tr></thead><tbody>' +
-      phase.lessons.map(function(l){
-        return '<tr><td>' + l.num + '</td><td>' + l.title + '</td>' +
-          '<td><span style="font-size:12px;color:var(--acc);font-weight:600">' + l.tab + '</span></td>' +
-          '<td>' + l.tip + '</td></tr>';
-      }).join('') +
-      '</tbody></table></div>';
+      phase.rows.map(function(r){
+        return '<tr><td>' + r.n + '</td><td>' + r.title + '</td>' +
+          '<td><span style="font-size:12px;color:var(--acc);font-weight:600">' + r.tabs + '</span></td>' +
+          '<td>' + r.tip + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
   });
   phaseHTML += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem">' +
     '<div class="s-label" style="margin-bottom:.5rem"><i class="ti ti-repeat"></i> Use throughout the whole course</div>' +
     '<ul style="padding-left:1.25rem;margin:0">' +
-    seq.ongoing.map(function(o){ return '<li style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:.3rem">' + o + '</li>'; }).join('') +
+    seq.ongoing.map(function(o){ return '<li style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:.3rem">' + o + '</li>'; }).join('') +
     '</ul></div>';
-  html += helpSection('hs-sequence','ti-list-numbers','background:var(--amber-l);color:var(--amber-d)','Recommended Lesson Order — ' + S.name,'Suggested teaching sequence with the app panels to use in each lesson.', phaseHTML);
+  html += helpSection('hs-sequence','ti-list-numbers','background:var(--amber-l);color:var(--amber-d)','Recommended Lesson Order — ' + S.name,'Delivery sequence with tab references and tips for every lesson.', phaseHTML);
 
-  /* Section 5 — SEN Guidance */
-  html += helpSection('hs-sen','ti-accessibility','background:#EEF6FF;color:#185FA5','SEN Guidance — How the Platform Supports All Learners','Built-in adaptations and how to get the most from them.',
-    '<div class="help-tip success"><i class="ti ti-check"></i><div>Every lesson plan has a <strong>blue SEN Adaptations panel</strong> at the top of the lesson detail. It explains exactly what scaffolding is built into that lesson and why. Read it before you teach.</div></div>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem;margin:1rem 0">' +
-    helpSenCard('ti-file-text','Writing frames throughout','Every lesson that requires written output provides sentence starters, completion frames or structured tables. Students never face a blank page.') +
-    helpSenCard('ti-sort-ascending','One concept at a time','Lessons introduce a maximum of two new terms per session. Vocabulary is revisited before new terms are added.') +
-    helpSenCard('ti-cards','Sorting before writing','Where possible, students sort, match or label before they write — reducing cognitive load and building confidence first.') +
-    helpSenCard('ti-users','Pair work throughout','Activities default to pair or small-group work before individual tasks. Peer support is built into the lesson structure.') +
-    helpSenCard('ti-clock','Short, timed tasks','Each activity within a lesson is 5–13 minutes maximum. Timers create gentle urgency and prevent students getting stuck.') +
-    helpSenCard('ti-microphone','Oral contributions valued','Discussion and verbal responses are explicitly validated. Several lessons are primarily discussion-led with minimal writing.') +
+  /* ── Section 5: Student Evaluation ── */
+  html += helpSection('hs-students','ti-users','background:var(--green-l);color:var(--green-d)','Student Evaluation System','How to add students, log assessments, monitor progress and generate reports.',
+    '<div class="help-tip success"><i class="ti ti-check"></i><div>All student data is saved automatically in the browser. It persists between sessions on the same computer. To move data to another computer, use <strong>Export CSV</strong>.</div></div>' +
+    '<div class="help-sequence" style="margin-top:1rem">' +
+    helpStep(1,'Add a student','Go to the <strong>Students tab</strong>. Click <strong>+ Add student</strong>. Fill in name, year group, subject, exam board, target grade, SEN needs and any teacher notes. Click Save.','The subject and board pre-fill from your current selection — change them per student if you teach multiple groups') +
+    helpStep(2,'Log an evaluation','Click <strong>+ Eval</strong> on any student card, or open the student detail and click Add eval. Choose the assessment type (Quiz, Mock exam, Written, Portfolio review, Verbal, Homework, Classwork), enter the date, score and grade.') +
+    helpStep(3,'Write feedback with dictation','The three feedback fields — <strong>Strengths</strong>, <strong>Areas to develop</strong> and <strong>Next steps</strong> — all have a 🎤 mic button. Tap to dictate your feedback hands-free while moving around the classroom.','Works in Chrome and Edge — make sure microphone access is allowed for the page') +
+    helpStep(4,'View a student\'s profile','Click any student card to open their full detail view. You\'ll see: a score trend sparkline, performance by topic (bar chart), all evaluation entries in reverse chronological order, and teacher notes.') +
+    helpStep(5,'Print a student report','Inside the student detail, click <strong>Print Report</strong>. A clean, printable progress report opens in a new tab — ready to share with parents, SENCO or pastoral leads. Includes all evaluations with feedback.') +
+    helpStep(6,'Print a class report','On the main Students panel, click <strong>Class Report</strong>. A one-page summary table of all students with year, subject, board, target grade, SEN flag, evaluation count and average score.') +
+    helpStep(7,'Export to spreadsheet','Click <strong>Export CSV</strong> to download all student data as a .csv file — open in Excel, Google Sheets or Numbers for further analysis or school records.') +
     '</div>' +
-    '<div class="help-tip"><i class="ti ti-bulb"></i><div><strong>Additional support:</strong> For students with very low literacy, the Quick Quiz (multiple choice) and sorting activities generate mark-able evidence with minimal writing. For high exam anxiety, the Mock Exam\'s "this is training, not a test" framing is built in — reinforce this verbally before starting.</div></div>'
+    '<div class="help-tip"><i class="ti ti-bulb"></i><div><strong>Suggested workflow:</strong> After each quiz or mock exam session, open Students, find the relevant students and log their scores. Use the Strengths / Develop / Next steps fields to record verbal observations while they\'re fresh. Over a half-term this builds a rich, evidence-based record with minimal extra admin.</div></div>'
   );
 
-  /* Section 6 — Tips */
-  html += helpSection('hs-tips','ti-keyboard','background:var(--surface2);color:var(--text)','Useful Tips & Shortcuts','Save time and get more from the platform every lesson.',
-    '<div style="margin-bottom:1.25rem"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">Browser shortcuts</div>' +
+  /* ── Section 6: SEN Support ── */
+  html += helpSection('hs-sen','ti-accessibility','background:#EEF6FF;color:#185FA5','SEN Support — Built-in Adaptations','Every lesson and feature has been designed with SEN students in mind.',
+    '<div class="help-tip success"><i class="ti ti-check"></i><div>Every lesson plan has a <strong>blue SEN Adaptations panel</strong> at the top of the lesson detail view. Read it before you deliver the lesson — it explains exactly what scaffolding is built in and why.</div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem;margin:1rem 0">' +
+    helpSenCard('ti-file-text','Writing frames throughout','Every lesson that requires written output provides sentence starters, completion frames or two-column tables. Students never face a blank page.') +
+    helpSenCard('ti-sort-ascending','One concept at a time','Lessons introduce a maximum of two new terms per session. All vocabulary is revisited before new terms are added.') +
+    helpSenCard('ti-cards','Sorting before writing','Activities default to sorting, matching or labelling before writing — reducing cognitive load and building confidence first.') +
+    helpSenCard('ti-users','Pair work built in','Activities default to pair or small-group work before individual tasks. Peer support is embedded in the lesson structure.') +
+    helpSenCard('ti-clock','Short, timed tasks','Each activity is 5–13 minutes maximum. Timers create gentle urgency and prevent students getting stuck.') +
+    helpSenCard('ti-microphone','Speech-to-text everywhere','Every answer textarea in Written Practice and every feedback field in Student Evaluation has a mic button for dictation — removing the writing barrier for students who find typing or handwriting difficult.') +
+    helpSenCard('ti-adjustments','Differentiation levels','Written questions are tagged Foundation, Core and Extension (by mark level). Filter pills let you show only the right level for each student or group.') +
+    helpSenCard('ti-chart-bar','Progress tracking','The Progress panel and Student Evaluation system let you identify which topics individual students are struggling with and target support accordingly.') +
+    '</div>' +
+    '<div class="help-tip"><i class="ti ti-bulb"></i><div><strong>For very low literacy:</strong> The Quick Quiz (multiple choice) and sorting/matching activities generate mark-able evidence with minimal writing. For high exam anxiety, the Mock Exam\'s "this is training, not a test" framing is built into the setup screen — reinforce this verbally before starting.</div></div>'
+  );
+
+  /* ── Section 7: Tips & Shortcuts ── */
+  html += helpSection('hs-tips','ti-keyboard','background:var(--surface2);color:var(--text)','Tips & Shortcuts','Save time and get more from the platform every lesson.',
+    '<div style="margin-bottom:1.25rem"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">Browser keyboard shortcuts</div>' +
     '<div class="help-shortcut-grid">' +
-    [['Ctrl+P / Cmd+P','Print current worksheet'],['Ctrl+D / Cmd+D','Bookmark the app'],['F11','Browser full-screen'],['Ctrl+R / Cmd+R','Reload/reset app'],['Ctrl++ / Cmd++','Zoom in for projector'],['Ctrl+- / Cmd+-','Zoom out']].map(function(s){
+    [
+      ['Ctrl+Shift+R / Cmd+Shift+R','Hard refresh — force reload new files'],
+      ['Ctrl+P / Cmd+P','Print current worksheet or report'],
+      ['F11','Full-screen browser (use with Classroom Mode)'],
+      ['Ctrl+D / Cmd+D','Bookmark the app in your browser'],
+      ['Ctrl++ / Cmd++','Zoom in for projector readability'],
+      ['Ctrl+- / Cmd+-','Zoom out']
+    ].map(function(s){
       return '<div class="help-shortcut"><span class="help-kbd">' + s[0] + '</span><span>' + s[1] + '</span></div>';
     }).join('') + '</div></div>' +
     '<div style="margin-bottom:1rem"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.75rem">Time-saving workflows</div>' +
     [
-      '<strong>Pre-lesson setup (2 min):</strong> Open the app, select subject, set board, go to Teach, select today\'s topic. Projector display is ready before students arrive.',
-      '<strong>5-minute exit quiz:</strong> Switch to Quiz, filter by today\'s topic, students answer 5 questions. Score is tracked automatically — visible in the header.',
-      '<strong>Print in advance:</strong> Open Worksheets, preview the needed sheet, Ctrl+P before the lesson. Worksheets include today\'s date automatically.',
-      '<strong>End of term reset:</strong> Progress → Clear session data. Resets scores for a new class or term. Does not affect other computers or devices.',
-      '<strong>Differentiating the Mock Exam:</strong> Set 10 questions / 20 minutes for lower-confidence students; 25 questions / 60 minutes for those ready for full simulation.',
-      '<strong>Written Practice for SEN:</strong> Filter by 2-mark questions first. Show the mark scheme on the projector. Students self-assess with a green pen before attempting the next question.'
+      '<strong>Pre-lesson setup (2 minutes):</strong> Select subject → set board → go to Teach → select topic. Projector is ready before students arrive.',
+      '<strong>5-minute exit quiz:</strong> Switch to Quiz → filter by today\'s topic → students answer 5 questions on their devices or call out answers as a class. Score tracked automatically.',
+      '<strong>Print a worksheet in advance:</strong> Open Worksheets → preview → Ctrl+P. Worksheets auto-include today\'s date. Keep a folder of printed ones for cover lessons.',
+      '<strong>Log student feedback hands-free:</strong> After walking around during a written activity, open Students → find the student → tap + Eval → dictate your observations into the three feedback fields.',
+      '<strong>Differentiate the Mock Exam:</strong> 10 questions / 20 minutes for lower-confidence students. 25 questions / 60 minutes for those ready for full simulation. Both are marked identically.',
+      '<strong>End of term reset:</strong> Progress tab → Clear session data. Students tab data persists (it\'s yours). Only the quiz/mock session scores reset.',
+      '<strong>Cover lesson pack:</strong> Print the lesson plan (Lessons tab → open lesson → Print Plan), a worksheet, and set the Mock Exam running. The platform runs without you in the room.'
     ].map(function(t){
       return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)">' +
         '<i class="ti ti-star" style="color:var(--acc);font-size:15px;flex-shrink:0;margin-top:2px"></i>' +
         '<p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0">' + t + '</p></div>';
     }).join('') + '</div>' +
-    '<div class="help-tip info"><i class="ti ti-refresh"></i><div><strong>Updating the platform:</strong> To install a new version, replace <strong>js/data.js</strong> in your oakhill folder — new content appears immediately. Only replace style.css and app.js if there are design or feature updates.</div></div>'
+    '<div class="help-tip info"><i class="ti ti-refresh"></i><div><strong>Updating the platform:</strong> To get new content, replace <strong>js/data.js</strong> only — new questions, lessons and glossary terms appear immediately. Replace <strong>js/app.js</strong> and <strong>css/style.css</strong> only when there are new features or design changes. Always do a hard refresh (Ctrl+Shift+R) after replacing any file.</div></div>'
   );
 
   setEl('help-content', html);
 }
-
 function setEl(id, html) {
   var el = document.getElementById(id);
   if (el) el.innerHTML = html;
