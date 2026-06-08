@@ -3035,3 +3035,303 @@ body {
 .teacher-badge:not(.unlocked):hover {
   animation: none;
 }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — LAPTOP & TABLET  v10b
+   1100px  small laptop / large tablet landscape
+    900px  tablet landscape
+    768px  tablet portrait
+    600px  large phone (handled above)
+═══════════════════════════════════════ */
+
+/* ─── 1100px ─── */
+@media (max-width: 1100px) {
+  .main { max-width: 100%; padding: 1.25rem; }
+  .header { padding: 0 1.1rem; gap: .6rem; }
+  .logo-name { font-size: 20px; letter-spacing: 1.5px; }
+  .logo-img  { width: 38px; height: 38px; }
+  .logo      { gap: 8px; }
+  .subj-bar  { padding: 0 1rem; }
+  .subj-btn  { padding: 0 13px; font-size: 11.5px; }
+  .tab-bar   { padding: 0 1rem; }
+  .tab-btn   { padding: 0 12px; font-size: 12.5px; gap: 5px; }
+  .teach-grid { grid-template-columns: 190px 1fr; gap: 1rem; }
+  .student-cards-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .set-texts-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .help-quickstart { grid-template-columns: repeat(3, 1fr); }
+  .lesson-timer-widget { width: 250px; }
+  .ltw-clock { font-size: 44px; }
+  .written-controls { gap: 6px; }
+  .grade-row { grid-template-columns: repeat(3, 1fr); }
+  .progress-overview { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .lessons-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .worksheets-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+}
+
+/* ─── 900px — Tablet landscape ─── */
+@media (max-width: 900px) {
+  /* Subject bar */
+  .subj-label { display: none; }
+  .subj-btn   { padding: 0 11px; font-size: 11px; }
+
+  /* Header compress */
+  .board-label { display: none; }
+  .view-label  { display: none; }
+  .header { padding: 0 .9rem; gap: .4rem; height: 54px; }
+  .logo-name { font-size: 17px; }
+  .logo small { display: none; }
+  .logo-img   { width: 32px; height: 32px; }
+
+  /* Tab bar */
+  .tab-btn { padding: 0 10px; font-size: 11.5px; gap: 4px; }
+  .tab-lock { display: none; }
+
+  /* Header icons — shrink to icon only */
+  #teacher-badge-label { display: none; }
+  .teacher-badge { padding: 6px 9px; }
+  .session-score span { display: none; }
+  .session-score { padding: 5px 8px; }
+  .board-badge { display: none; }
+  #countdown-display { display: none; }
+  .exam-countdown { padding: 5px 8px; }
+
+  /* Teach: stack */
+  .teach-grid { grid-template-columns: 1fr; }
+  .topic-selector { position: static; margin-bottom: 1rem; }
+  .topic-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .topic-card-btn { flex: unset; }
+
+  /* Content boxes */
+  .content-box { padding: 1.1rem; }
+  .set-texts-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .student-cards-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .lessons-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .worksheets-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .help-quickstart { grid-template-columns: repeat(2, 1fr); }
+  .help-feature-row { grid-template-columns: 140px 1fr; }
+
+  /* Mock exam */
+  .mock-opt-grid { grid-template-columns: repeat(2, 1fr); }
+  .timer-bar { flex-wrap: wrap; gap: 8px; }
+  .timer-track { width: 100%; flex: 0 0 100%; order: 3; }
+  .timer-clock { font-size: 30px; }
+
+  /* Grade row */
+  .grade-row { grid-template-columns: repeat(3, 1fr); }
+
+  /* Lesson detail */
+  .lesson-plan-meta { gap: 8px; }
+  .activity-time { flex: 0 0 70px; font-size: 10px; }
+
+  /* Theory table */
+  .theory-table { font-size: 12px; }
+  .theory-table th, .theory-table td { padding: 6px 8px; }
+
+  /* Written questions */
+  .written-q-header { flex-wrap: wrap; gap: 5px; }
+  .written-question h4 { font-size: 15px; }
+
+  /* Quiz */
+  .q-text { font-size: 14px; }
+
+  /* Lesson timer */
+  .lesson-timer-widget { width: 220px; bottom: 1rem; right: 1rem; }
+  .ltw-clock { font-size: 38px; }
+
+  /* Sticky notes */
+  .sticky-panel { width: 260px; }
+
+  /* Student cards */
+  .student-card-stats { grid-template-columns: repeat(3, 1fr); }
+
+  /* Progress */
+  .progress-overview { grid-template-columns: repeat(2, 1fr); }
+  .progress-topic-name { flex: 0 0 160px; font-size: 12px; }
+
+  /* Glossary */
+  .gloss-term { font-size: 14px; }
+}
+
+/* ─── 768px — Tablet portrait ─── */
+@media (max-width: 768px) {
+
+  /* App layout: reduce sticky header height */
+  .app { grid-template-rows: 44px 54px 44px 1fr; }
+  .header { top: 44px; height: 54px; }
+  .tab-bar { top: 98px; height: 44px; }
+
+  /* Subject bar: icons + short text */
+  .subj-btn { font-size: 10.5px; padding: 0 8px; gap: 5px; }
+  .subj-btn i { font-size: 15px; }
+
+  /* Tab bar */
+  .tab-btn { padding: 0 8px; font-size: 11px; height: 44px; }
+  .tab-btn i { font-size: 14px; }
+
+  /* Hide tab text on smallest tablets — icons only for overflow tabs */
+  .tab-btn .tab-text { display: none; }
+
+  /* Header: tighten further */
+  .header { padding: 0 .75rem; gap: .35rem; }
+  .logo-img { width: 30px; height: 30px; }
+  .logo-name { font-size: 16px; }
+
+  /* Main content */
+  .main { padding: 1rem .9rem; }
+
+  /* Cards: single column */
+  .student-cards-grid { grid-template-columns: 1fr; }
+  .lessons-grid { grid-template-columns: 1fr; }
+  .worksheets-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .set-texts-grid { grid-template-columns: 1fr; }
+  .help-quickstart { grid-template-columns: repeat(2, 1fr); }
+  .students-stats { grid-template-columns: repeat(2, 1fr); }
+  .progress-overview { grid-template-columns: repeat(2, 1fr); }
+  .grade-row { grid-template-columns: repeat(2, 1fr); }
+
+  /* Mock setup */
+  .mock-setup-box { padding: 1.25rem; }
+  .mock-opt-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  /* Teach grid: full stack */
+  .teach-grid { grid-template-columns: 1fr; }
+  .topic-cards { grid-template-columns: repeat(2, 1fr); gap: 5px; }
+  .topic-card-btn h4 { font-size: 12px; }
+
+  /* Examples and resources */
+  .examples-box, .resources-box { padding: .85rem 1rem; }
+  .resource-link { font-size: 12px; }
+
+  /* Classroom mode */
+  .classroom-body { padding: 1.25rem; }
+  .classroom-topic { font-size: 26px; }
+  .classroom-concept-text { font-size: 14px; }
+  .classroom-header { padding: 0 1.25rem; }
+
+  /* Theory */
+  .theory-block { padding: 1.1rem; }
+  .theory-block-header { gap: .75rem; }
+  .theory-block-icon { width: 40px; height: 40px; }
+  .theory-block-icon i { font-size: 20px; }
+
+  /* Lesson detail */
+  .lesson-plan-header { padding: 1.1rem; }
+  .lesson-section { padding: 1rem; }
+
+  /* Key concept grid — stack on portrait tablet */
+  .key-concept { grid-template-columns: 1fr; gap: 4px; }
+  .key-concept > .ctag { margin-bottom: 2px; }
+
+  /* Help */
+  .help-feature-row { grid-template-columns: 1fr; gap: 3px; }
+  .help-feature-label { margin-bottom: 2px; }
+  .help-lesson-table td:nth-child(2) { width: auto; }
+  .help-lesson-table { font-size: 12px; }
+  .help-lesson-table th, .help-lesson-table td { padding: 6px 7px; }
+
+  /* Sticky notes: full width on portrait */
+  .sticky-panel { width: calc(100vw - 2rem); right: 1rem; }
+
+  /* Lesson timer: bottom centre */
+  .lesson-timer-widget { width: calc(100vw - 2rem); right: 1rem; left: 1rem; bottom: .75rem; }
+  .ltw-clock { font-size: 42px; }
+
+  /* Toast: adjust */
+  .stt-toast { max-width: calc(100vw - 2rem); white-space: normal; text-align: center; }
+
+  /* Written practice */
+  .written-controls { flex-direction: column; align-items: stretch; }
+  .written-controls .filter-sel { width: 100%; }
+  .written-controls .btn-sm { align-self: flex-start; }
+  .diff-filter-bar { flex-wrap: wrap; }
+
+  /* Modal */
+  .modal-box { padding: 1.25rem; }
+  .modal-box > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+  /* Pin modal */
+  .pin-box { padding: 1.5rem 1.1rem; max-width: 320px; }
+  .pin-key { height: 50px; font-size: 20px; }
+
+  /* Students panel */
+  .students-hero { flex-direction: column; align-items: flex-start; gap: .75rem; }
+  .students-toolbar { flex-direction: column; }
+  .students-search { width: 100%; }
+  .students-filter-sel { width: 100%; }
+
+  /* SD detail */
+  .sd-header { flex-wrap: wrap; }
+  .sd-actions { margin-left: 0; }
+  .sd-stats-row { grid-template-columns: repeat(2, 1fr); }
+
+  /* Score display */
+  .score-display { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Quiz */
+  .quiz-controls { flex-direction: column; align-items: flex-start; }
+  .quiz-controls .btn-sm { margin-left: 0 !important; }
+}
+
+/* ─── Hide tab TEXT labels on smallest tablets (icon-only mode) ─── */
+@media (max-width: 768px) {
+  /* Show only icon for most tabs, keep text for Teach and Quiz which students use */
+  .tab-btn:not([onclick*="teach"]):not([onclick*="quiz"]):not([onclick*="theory"]):not([onclick*="gloss"]) .ti:not(.tab-lock) ~ * {
+    display: none;
+  }
+}
+
+/* ─── Responsive images / charts ─── */
+@media (max-width: 900px) {
+  .eval-trend { height: 28px; }
+  .eval-trend-bar { min-height: 3px; }
+  .help-hero { padding: 1.5rem 1.25rem; }
+  .help-hero h1 { font-size: 28px; }
+  .students-hero h2 { font-size: 24px; }
+}
+
+/* ─── Touch-friendly tap targets ─── */
+@media (max-width: 900px) {
+  .btn-sm { padding: 8px 14px; min-height: 36px; }
+  .q-opt  { padding: 13px 16px; }
+  .gloss-filter { padding: 6px 14px; }
+  .diff-pill    { padding: 6px 14px; }
+  .topic-card-btn { min-height: 52px; }
+  .lesson-card { padding: 1rem; }
+  .worksheet-card { padding: 1rem; }
+  .sc-action-btn { min-height: 36px; }
+  .ltw-btn { width: 42px; height: 42px; }
+  .ltw-btn.ltw-play { width: 50px; height: 50px; }
+}
+
+/* ─── Laptop-specific optimisations (1024–1280px) ─── */
+@media (min-width: 900px) and (max-width: 1280px) {
+  .main { padding: 1.5rem 1.25rem; }
+  .teach-grid { grid-template-columns: 200px 1fr; }
+  .set-texts-grid { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+  .student-cards-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+  .help-quickstart { grid-template-columns: repeat(3, 1fr); }
+  .help-lesson-table { font-size: 12.5px; }
+  .q-card { padding: 1.25rem; }
+  .written-question { padding: 1.25rem; }
+}
+
+/* ─── Tab text spans — hide on portrait tablet for icon-only mode ─── */
+@media (max-width: 768px) {
+  /* Hide text labels on locked teacher tabs — icon enough when collapsed */
+  .tab-btn[data-teacher="1"] .tab-text { display: none; }
+  /* Keep text on core student tabs */
+  .tab-btn:not([data-teacher="1"]) .tab-text { display: inline; }
+}
+
+/* ─── Responsive modal adjustments ─── */
+@media (max-width: 768px) {
+  /* Stack modal grids */
+  #student-modal .modal-box > div[style*="grid"] { grid-template-columns: 1fr !important; }
+  #eval-modal .modal-box > div[style*="grid"] { grid-template-columns: 1fr !important; }
+
+  /* Print lesson modal */
+  #print-lesson-modal .modal-box { max-width: 100%; margin: .5rem; }
+
+  /* Student detail */
+  #student-detail-modal .modal-box { max-width: 100%; margin: .5rem; }
+}
