@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oak Hill — Creative GCSE Teaching Platform</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
-<link rel="stylesheet" href="css/style.css?v=8c">
+<link rel="stylesheet" href="css/style.css?v=9b">
 </head>
 <body>
 <div class="app" id="app">
 
   <!-- SUBJECT BAR -->
   <div class="subj-bar">
-    <span class="subj-label">Oak Hill Creative GCSEs</span>
+    <span class="subj-label">Oak Hill Media Lab</span>
     <button class="subj-btn s-media active" id="btn-media" onclick="setSubject('media',this)">
       <i class="ti ti-device-tv"></i> Media Studies
     </button>
@@ -30,7 +30,13 @@
   <!-- HEADER -->
   <header class="header">
     <div class="logo" id="logo">
-      Oak Hill<small id="logo-sub">Media Studies</small>
+      <div class="logo-icon" id="logo-icon">
+        <i class="ti ti-device-tv" id="logo-icon-i"></i>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name" id="logo-name">Oak Hill</span>
+        <small id="logo-sub">Media Lab — Media Studies</small>
+      </div>
     </div>
     <div class="header-center" id="header-center">
       <span class="view-label" id="view-label">Teaching Platform</span>
@@ -325,7 +331,7 @@
 <!-- CLASSROOM MODE OVERLAY -->
 <div class="classroom-overlay" id="classroom-overlay" style="display:none">
   <div class="classroom-header">
-    <div class="classroom-logo">Oak Hill — <span id="classroom-subject">Media Studies</span></div>
+    <div class="classroom-logo">Oak Hill Media Lab — <span id="classroom-subject">Media Studies</span></div>
     <div class="classroom-board" id="classroom-board-badge">AQA</div>
     <button class="classroom-close" onclick="toggleClassroom()">
       <i class="ti ti-x"></i> Exit
@@ -585,7 +591,7 @@
 <!-- PRINT STYLES -->
 <div id="print-area" style="display:none"></div>
 
-<script src="js/data.js?v=8c"></script>
-<script src="js/app.js?v=8c"></script>
+<script src="js/data.js?v=9b"></script>
+<script src="js/app.js?v=9b"></script>
 </body>
 </html>

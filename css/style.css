@@ -88,48 +88,57 @@ body {
 }
 .subj-bar::-webkit-scrollbar { display: none; }
 .subj-label {
-  font-size: 11px;
-  color: rgba(255,255,255,0.3);
-  font-weight: 500;
-  padding-right: 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 700;
+  padding-right: 18px;
   white-space: nowrap;
   flex-shrink: 0;
-  letter-spacing: .3px;
+  letter-spacing: .5px;
+  font-family: var(--font-display);
+  letter-spacing: 1.5px;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  margin-right: 4px;
 }
 .subj-btn {
-  padding: 0 14px;
+  padding: 0 18px;
   height: 44px;
   border: none;
   background: none;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: .5px;
+  letter-spacing: .6px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.45);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   white-space: nowrap;
   border-bottom: 3px solid transparent;
-  transition: color .15s;
+  transition: color .12s, background .12s;
   flex-shrink: 0;
+  border-radius: 0;
 }
-.subj-btn:hover { color: rgba(255,255,255,0.8); }
-.subj-btn.s-media.active { color: #fff; border-bottom-color: var(--green); }
-.subj-btn.s-photo.active { color: #fff; border-bottom-color: var(--amber); }
-.subj-btn.s-graphic.active { color: #fff; border-bottom-color: var(--purple); }
+.subj-btn:hover {
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.06);
+}
+.subj-btn.s-media.active  { color: #fff; border-bottom-color: var(--green);  background: rgba(29,158,117,0.12); }
+.subj-btn.s-photo.active  { color: #fff; border-bottom-color: var(--amber);  background: rgba(186,117,23,0.12); }
+.subj-btn.s-graphic.active{ color: #fff; border-bottom-color: var(--purple); background: rgba(83,74,183,0.12); }
 .subj-btn.classroom-btn {
   margin-left: auto;
-  color: rgba(255,255,255,0.5);
-  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: 6px;
   height: 30px;
-  font-size: 11px;
+  font-size: 11.5px;
+  background: rgba(255,255,255,0.05);
 }
-.subj-btn.classroom-btn:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
-.subj-btn i { font-size: 15px; }
+.subj-btn.classroom-btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); }
+.subj-btn i { font-size: 16px; }
 
 /* ─── HEADER ─── */
 .header {
@@ -147,20 +156,37 @@ body {
 }
 .logo {
   font-family: var(--font-display);
-  font-size: 26px;
-  letter-spacing: 2px;
+  font-size: 28px;
+  letter-spacing: 2.5px;
   color: var(--acc);
   line-height: 1;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--acc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.logo-icon i { font-size: 20px; color: #fff; }
+.logo-text { display: flex; flex-direction: column; }
+.logo-name { font-family: var(--font-display); font-size: 24px; letter-spacing: 2px; color: var(--acc); line-height: 1; }
 .logo small {
   display: block;
   font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--text3);
   text-transform: uppercase;
-  letter-spacing: .5px;
+  letter-spacing: 1px;
+  margin-top: 2px;
 }
 .header-center {
   flex: 1;
@@ -236,12 +262,12 @@ body {
 }
 .tab-bar::-webkit-scrollbar { display: none; }
 .tab-btn {
-  padding: 0 14px;
+  padding: 0 16px;
   height: 48px;
   border: none;
   background: none;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text3);
   cursor: pointer;
@@ -249,13 +275,21 @@ body {
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: color .15s;
+  gap: 7px;
+  transition: color .12s, background .12s;
   flex-shrink: 0;
+  border-radius: 0;
 }
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--acc); border-bottom-color: var(--acc); }
-.tab-btn i { font-size: 15px; }
+.tab-btn:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+.tab-btn.active {
+  color: var(--acc);
+  border-bottom-color: var(--acc);
+  font-weight: 700;
+}
+.tab-btn i { font-size: 16px; }
 
 /* ─── MAIN ─── */
 .main {
