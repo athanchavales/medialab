@@ -407,14 +407,21 @@ body {
 /* Key concepts list in teach panel */
 .key-concept {
   display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 16px;
-  align-items: baseline;
-  padding: 13px 0;
+  grid-template-columns: minmax(auto, 180px) 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
 }
 .key-concept:last-child { border-bottom: none; padding-bottom: 0; }
-.key-concept > .ctag { margin-top: 0; width: fit-content; justify-self: start; }
+.key-concept > .ctag {
+  margin-top: 3px;
+  width: fit-content;
+  max-width: 180px;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
 .concept-text { font-size: 13.5px; color: var(--text2); line-height: 1.7; }
 .concept-text strong { color: var(--text); font-weight: 600; }
 .concept-text em { color: var(--text3); font-style: italic; }
@@ -2371,3 +2378,37 @@ body {
 .print-lesson-view .plv-activity { display: flex; gap: 10px; font-size: 13px; margin-bottom: 6px; }
 .print-lesson-view .plv-time { font-weight: 700; color: #185FA5; white-space: nowrap; flex-shrink: 0; }
 .print-lesson-view .plv-footer { font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 6px; margin-top: 1rem; display: flex; justify-content: space-between; }
+
+/* ─── TOPIC INTRO & EXAM FOCUS ─── */
+.topic-intro-box {
+  background: var(--surface2);
+  border-left: 4px solid var(--acc);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.topic-intro-text {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+  margin: 0;
+}
+.topic-exam-focus {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--amber-l);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 13px;
+  color: var(--amber-d);
+  line-height: 1.6;
+}
+.topic-exam-focus i {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.topic-exam-focus strong { font-weight: 700; }

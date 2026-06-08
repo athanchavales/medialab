@@ -170,13 +170,30 @@ function setTopic(i, el) {
   document.getElementById('topic-display-title').innerHTML =
     '<i class="ti ' + t.icon + '" style="color:var(--acc)"></i> ' + t.title;
 
-  /* concepts */
+  /* intro + concepts */
   var body = document.getElementById('topic-display-body');
-  body.innerHTML = t.concepts.map(function(c){
+  var introHTML = '';
+
+  if (t.intro) {
+    introHTML += '<div class="topic-intro-box">' +
+      '<p class="topic-intro-text">' + t.intro + '</p>' +
+    '</div>';
+  }
+
+  if (t.examFocus) {
+    introHTML += '<div class="topic-exam-focus">' +
+      '<i class="ti ti-pencil"></i>' +
+      '<div><strong>Exam focus:</strong> ' + t.examFocus + '</div>' +
+    '</div>';
+  }
+
+  var conceptsHTML = t.concepts.map(function(c){
     return '<div class="key-concept">' +
       '<span class="ctag ' + c.tc + '">' + c.tag + '</span>' +
       '<p class="concept-text">' + c.text + '</p></div>';
   }).join('');
+
+  body.innerHTML = introHTML + conceptsHTML;
 
   /* examples */
   var ex = document.getElementById('topic-examples');
