@@ -97,6 +97,9 @@
     <button class="tab-btn help-tab" onclick="showPanel('help',this)">
       <i class="ti ti-info-circle"></i> Teacher Help
     </button>
+    <button class="tab-btn students-tab" onclick="showPanel('students',this)">
+      <i class="ti ti-users"></i> Students
+    </button>
   </nav>
 
   <!-- MAIN CONTENT -->
@@ -306,6 +309,11 @@
       </div>
     </section>
 
+    <!-- ══ STUDENTS PANEL ══ -->
+    <section id="panel-students" class="panel">
+      <div id="students-content"></div>
+    </section>
+
     <!-- ══ HELP PANEL ══ -->
     <section id="panel-help" class="panel">
       <div id="help-content"></div>
@@ -418,6 +426,160 @@
   <i class="ti ti-microphone" style="color:#E55;font-size:18px"></i>
   <span id="stt-toast-text">Listening…</span>
   <button onclick="stopGlobalMic()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.7);font-size:18px"><i class="ti ti-x"></i></button>
+</div>
+
+<!-- STUDENT ADD/EDIT MODAL -->
+<div class="modal-backdrop" id="student-modal" style="display:none" onclick="closeStudentModal()">
+  <div class="modal-box" style="max-width:480px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <i class="ti ti-user-plus" style="color:var(--acc);font-size:22px"></i>
+      <h3 id="student-modal-title">Add Student</h3>
+      <button class="ltw-close" onclick="closeStudentModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem">
+      <div>
+        <label class="modal-label">First name *</label>
+        <input type="text" id="s-firstname" class="modal-input" placeholder="e.g. Jamie">
+      </div>
+      <div>
+        <label class="modal-label">Last name *</label>
+        <input type="text" id="s-lastname" class="modal-input" placeholder="e.g. Smith">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem">
+      <div>
+        <label class="modal-label">Year group</label>
+        <select id="s-year" class="modal-input">
+          <option value="">Select year</option>
+          <option>Year 9</option><option>Year 10</option><option>Year 11</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Subject</label>
+        <select id="s-subject" class="modal-input">
+          <option value="media">Media Studies</option>
+          <option value="photo">Photography</option>
+          <option value="graphic">Graphic Communication</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem">
+      <div>
+        <label class="modal-label">Exam board</label>
+        <select id="s-board" class="modal-input">
+          <option value="aqa">AQA</option>
+          <option value="ocr">OCR</option>
+          <option value="eduqas">Eduqas</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Target grade</label>
+        <select id="s-target" class="modal-input">
+          <option value="">No target set</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <label class="modal-label">SEN / Additional needs</label>
+      <input type="text" id="s-sen" class="modal-input" placeholder="e.g. Dyslexia, ADHD, EAL, SEMH — leave blank if none">
+    </div>
+    <div style="margin-bottom:1rem">
+      <label class="modal-label">Notes</label>
+      <textarea id="s-notes" class="modal-input" rows="2" style="resize:vertical" placeholder="Pastoral notes, strengths, areas to develop…"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="start-btn" onclick="saveStudent()" style="flex:1" id="student-save-btn">Save student</button>
+      <button class="btn-sm" onclick="closeStudentModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT EVALUATION MODAL -->
+<div class="modal-backdrop" id="eval-modal" style="display:none" onclick="closeEvalModal()">
+  <div class="modal-box" style="max-width:580px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <i class="ti ti-chart-bar" style="color:var(--acc);font-size:22px"></i>
+      <h3 id="eval-modal-title">Add Evaluation</h3>
+      <button class="ltw-close" onclick="closeEvalModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="eval-student-info" style="background:var(--surface2);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--text2)"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem">
+      <div>
+        <label class="modal-label">Assessment type *</label>
+        <select id="e-type" class="modal-input">
+          <option value="">Select type</option>
+          <option value="quiz">Quiz score</option>
+          <option value="mock">Mock exam</option>
+          <option value="written">Written question</option>
+          <option value="portfolio">Portfolio review</option>
+          <option value="verbal">Verbal assessment</option>
+          <option value="homework">Homework</option>
+          <option value="classwork">Classwork</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Date</label>
+        <input type="date" id="e-date" class="modal-input">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:.75rem">
+      <div>
+        <label class="modal-label">Score / marks</label>
+        <input type="number" id="e-score" class="modal-input" placeholder="e.g. 7" min="0" max="100">
+      </div>
+      <div>
+        <label class="modal-label">Out of</label>
+        <input type="number" id="e-outof" class="modal-input" placeholder="e.g. 10" min="1" max="100">
+      </div>
+      <div>
+        <label class="modal-label">Grade / level</label>
+        <select id="e-grade" class="modal-input">
+          <option value="">—</option>
+          <option>9</option><option>8</option><option>7</option><option>6</option>
+          <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          <option>U</option><option>Distinction</option><option>Merit</option><option>Pass</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <label class="modal-label">Topic / focus</label>
+      <select id="e-topic" class="modal-input"></select>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <label class="modal-label">Strengths observed</label>
+      <div class="stt-field-wrap">
+        <textarea id="e-strengths" class="modal-input" rows="2" style="padding-bottom:2.5rem;resize:vertical" placeholder="What did the student do well?"></textarea>
+        <button class="stt-field-btn" id="micbtn-e-strengths" onclick="startFieldMicSafe('e-strengths')" title="Dictate"><i class="ti ti-microphone"></i></button>
+      </div>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <label class="modal-label">Areas to develop</label>
+      <div class="stt-field-wrap">
+        <textarea id="e-develop" class="modal-input" rows="2" style="padding-bottom:2.5rem;resize:vertical" placeholder="What needs improvement?"></textarea>
+        <button class="stt-field-btn" id="micbtn-e-develop" onclick="startFieldMicSafe('e-develop')" title="Dictate"><i class="ti ti-microphone"></i></button>
+      </div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label class="modal-label">Next steps / targets</label>
+      <div class="stt-field-wrap">
+        <textarea id="e-nextsteps" class="modal-input" rows="2" style="padding-bottom:2.5rem;resize:vertical" placeholder="What should the student focus on next?"></textarea>
+        <button class="stt-field-btn" id="micbtn-e-nextsteps" onclick="startFieldMicSafe('e-nextsteps')" title="Dictate"><i class="ti ti-microphone"></i></button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="start-btn" onclick="saveEval()" style="flex:1">Save evaluation</button>
+      <button class="btn-sm" onclick="closeEvalModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT DETAIL MODAL -->
+<div class="modal-backdrop" id="student-detail-modal" style="display:none" onclick="closeStudentDetail()">
+  <div class="modal-box" style="max-width:680px;max-height:92vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div id="student-detail-content"></div>
+  </div>
 </div>
 
 <!-- PRINT STYLES -->

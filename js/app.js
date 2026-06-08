@@ -135,8 +135,9 @@ function showPanel(id, btn) {
     settexts: SUBJECTS[currentSubject].setTextsLabel,
     written:'Written Practice', quiz:'Quick Quiz', mock:'Mock Exam',
     glossary:'Glossary', boards:'Exam Boards', help:'Teacher Help',
-    worksheets:'Worksheets', progress:'Progress'
+    students:'Student Evaluation', worksheets:'Worksheets', progress:'Progress'
   }[id] || id;
+  if (id === 'students') renderStudents();
 }
 
 /* ─── TEACH PANEL ─── */
@@ -2207,4 +2208,538 @@ openLessonDetail = function(i) {
   } catch(e) {}
   /* Start countdown if saved */
   startCountdownTick();
+})();
+
+/* ═══════════════════════════════════════
+   STUDENT EVALUATION SYSTEM — v8
+═══════════════════════════════════════ */
+
+/* ─── STATE ─── */
+var students     = [];   /* array of student objects */
+var editingStudentId  = null;
+var editingEvalId     = null;
+var viewingStudentId  = null;
+
+/* ─── STORAGE ─── */
+function saveStudents() {
+  try { localStorage.setItem('oakhill_students', JSON.stringify(students)); } catch(e) {}
+}
+function loadStudents() {
+  try {
+    var s = localStorage.getItem('oakhill_students');
+    if (s) students = JSON.parse(s);
+  } catch(e) { students = []; }
+}
+function genId() {
+  return 'st_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+}
+
+/* ─── AVATAR COLOURS ─── */
+var avatarColours = ['#1D9E75','#534AB7','#BA7517','#A32D2D','#185FA5','#993C1D','#993556','#0F6E56'];
+function avatarColour(id) {
+  var n = 0;
+  for (var i = 0; i < id.length; i++) n += id.charCodeAt(i);
+  return avatarColours[n % avatarColours.length];
+}
+function initials(s) {
+  return ((s.firstName||'')[0] || '').toUpperCase() + ((s.lastName||'')[0] || '').toUpperCase();
+}
+
+/* ─── RENDER STUDENTS PANEL ─── */
+function renderStudents() {
+  var search  = (document.getElementById('st-search')  || {}).value || '';
+  var subjFil = (document.getElementById('st-subj-fil')|| {}).value || '';
+  var yearFil = (document.getElementById('st-year-fil')|| {}).value || '';
+
+  var filtered = students.filter(function(s) {
+    var name = (s.firstName + ' ' + s.lastName).toLowerCase();
+    var ok = (!search || name.includes(search.toLowerCase())) &&
+             (!subjFil || s.subject === subjFil) &&
+             (!yearFil || s.year    === yearFil);
+    return ok;
+  });
+
+  /* Stats */
+  var totalEvals = students.reduce(function(a,s){ return a + (s.evals||[]).length; }, 0);
+  var avgGrade   = '-';
+  var gradeNums  = [];
+  students.forEach(function(s){ (s.evals||[]).forEach(function(e){ if(e.grade && !isNaN(e.grade)) gradeNums.push(parseInt(e.grade)); }); });
+  if (gradeNums.length) avgGrade = (gradeNums.reduce(function(a,b){return a+b;},0)/gradeNums.length).toFixed(1);
+  var senCount = students.filter(function(s){ return s.sen && s.sen.trim(); }).length;
+
+  var html = '<div class="students-hero">' +
+    '<div><h2>Student Evaluation</h2>' +
+    '<p>' + students.length + ' student' + (students.length !== 1 ? 's' : '') + ' registered &nbsp;·&nbsp; ' + totalEvals + ' evaluation' + (totalEvals !== 1 ? 's' : '') + ' recorded</p></div>' +
+    '<div class="students-actions">' +
+      '<button class="btn-sm" onclick="exportStudents()"><i class="ti ti-download"></i> Export CSV</button>' +
+      '<button class="btn-sm" onclick="printClassReport()"><i class="ti ti-printer"></i> Class report</button>' +
+      '<button class="start-btn" onclick="openStudentModal()"><i class="ti ti-plus"></i> Add student</button>' +
+    '</div></div>';
+
+  /* Stats row */
+  html += '<div class="students-stats">' +
+    '<div class="sstat"><div class="val">' + students.length + '</div><div class="lbl">Students</div></div>' +
+    '<div class="sstat"><div class="val">' + totalEvals + '</div><div class="lbl">Evaluations</div></div>' +
+    '<div class="sstat"><div class="val">' + avgGrade + '</div><div class="lbl">Avg grade</div></div>' +
+    '<div class="sstat"><div class="val">' + senCount + '</div><div class="lbl">SEN students</div></div>' +
+    '</div>';
+
+  /* Toolbar */
+  html += '<div class="students-toolbar">' +
+    '<input class="students-search" id="st-search" type="search" placeholder="Search students…" value="' + search + '" oninput="renderStudents()">' +
+    '<select class="students-filter-sel" id="st-subj-fil" onchange="renderStudents()">' +
+      '<option value="">All subjects</option>' +
+      '<option value="media"' + (subjFil==='media'?' selected':'') + '>Media Studies</option>' +
+      '<option value="photo"' + (subjFil==='photo'?' selected':'') + '>Photography</option>' +
+      '<option value="graphic"' + (subjFil==='graphic'?' selected':'') + '>Graphic Comm</option>' +
+    '</select>' +
+    '<select class="students-filter-sel" id="st-year-fil" onchange="renderStudents()">' +
+      '<option value="">All years</option>' +
+      '<option value="Year 9"' + (yearFil==='Year 9'?' selected':'') + '>Year 9</option>' +
+      '<option value="Year 10"' + (yearFil==='Year 10'?' selected':'') + '>Year 10</option>' +
+      '<option value="Year 11"' + (yearFil==='Year 11'?' selected':'') + '>Year 11</option>' +
+    '</select>' +
+    '</div>';
+
+  if (students.length === 0) {
+    html += '<div class="students-empty">' +
+      '<i class="ti ti-users"></i>' +
+      '<h3>No students yet</h3>' +
+      '<p>Click <strong>Add student</strong> to register your first student and begin tracking their progress.</p>' +
+      '</div>';
+  } else if (filtered.length === 0) {
+    html += '<div class="students-empty"><i class="ti ti-search"></i><h3>No students match</h3><p>Try a different search or filter.</p></div>';
+  } else {
+    html += '<div class="student-cards-grid">' +
+      filtered.map(function(s){ return renderStudentCard(s); }).join('') +
+      '</div>';
+  }
+
+  setEl('students-content', html);
+}
+
+function renderStudentCard(s) {
+  var col   = avatarColour(s.id);
+  var evals = s.evals || [];
+  var avgPct = '-';
+  var scored = evals.filter(function(e){ return e.score !== '' && e.outof; });
+  if (scored.length) {
+    var pct = scored.reduce(function(a,e){ return a + (parseInt(e.score)/parseInt(e.outof)*100); }, 0) / scored.length;
+    avgPct = Math.round(pct) + '%';
+  }
+  var lastEval = evals.length ? evals[evals.length-1] : null;
+  var lastDate = lastEval ? new Date(lastEval.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—';
+  var subjName = { media:'Media Studies', photo:'Photography', graphic:'Graphic Comm' }[s.subject] || s.subject;
+  var subjCol  = { media:'ctag-g', photo:'ctag-a', graphic:'ctag-p' }[s.subject] || 'ctag-b';
+
+  return '<div class="student-card" onclick="openStudentDetail(\'' + s.id + '\')">' +
+    '<div class="student-card-header">' +
+      '<div class="student-avatar" style="background:' + col + '">' + initials(s) + '</div>' +
+      '<div>' +
+        '<div class="student-card-name">' + s.firstName + ' ' + s.lastName + '</div>' +
+        '<div class="student-card-meta">' + (s.year||'') + (s.year && subjName ? ' · ' : '') + subjName + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="student-card-tags">' +
+      '<span class="student-card-tag ctag ' + subjCol + '">' + SUBJECTS[s.subject||'media'].boards[s.board||'aqa'].name + '</span>' +
+      (s.target ? '<span class="student-card-tag ctag-b">Target: ' + s.target + '</span>' : '') +
+      (s.sen && s.sen.trim() ? '<span class="sen-badge"><i class="ti ti-accessibility" style="font-size:12px"></i> SEN</span>' : '') +
+    '</div>' +
+    '<div class="student-card-stats">' +
+      '<div class="sc-stat"><div class="v">' + evals.length + '</div><div class="l">Evals</div></div>' +
+      '<div class="sc-stat"><div class="v">' + avgPct + '</div><div class="l">Avg score</div></div>' +
+      '<div class="sc-stat"><div class="v">' + lastDate + '</div><div class="l">Last eval</div></div>' +
+    '</div>' +
+    '<div class="student-card-actions" onclick="event.stopPropagation()">' +
+      '<button class="sc-action-btn primary" onclick="openEvalModal(\'' + s.id + '\')"><i class="ti ti-plus"></i> Eval</button>' +
+      '<button class="sc-action-btn" onclick="openStudentModal(\'' + s.id + '\')"><i class="ti ti-edit"></i> Edit</button>' +
+      '<button class="sc-action-btn danger" onclick="deleteStudent(\'' + s.id + '\')"><i class="ti ti-trash"></i></button>' +
+    '</div>' +
+    '</div>';
+}
+
+/* ─── ADD / EDIT STUDENT ─── */
+function openStudentModal(id) {
+  editingStudentId = id || null;
+  var s = id ? students.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('student-modal-title').textContent = s ? 'Edit Student' : 'Add Student';
+  document.getElementById('student-save-btn').textContent = s ? 'Save changes' : 'Add student';
+  document.getElementById('s-firstname').value = s ? s.firstName : '';
+  document.getElementById('s-lastname').value  = s ? s.lastName  : '';
+  document.getElementById('s-year').value      = s ? (s.year||'') : '';
+  document.getElementById('s-subject').value   = s ? (s.subject||'media') : currentSubject;
+  document.getElementById('s-board').value     = s ? (s.board||'aqa') : currentBoard;
+  document.getElementById('s-target').value    = s ? (s.target||'') : '';
+  document.getElementById('s-sen').value       = s ? (s.sen||'') : '';
+  document.getElementById('s-notes').value     = s ? (s.notes||'') : '';
+  document.getElementById('student-modal').style.display = 'flex';
+}
+function closeStudentModal() {
+  document.getElementById('student-modal').style.display = 'none';
+}
+function saveStudent() {
+  var fn = document.getElementById('s-firstname').value.trim();
+  var ln = document.getElementById('s-lastname').value.trim();
+  if (!fn || !ln) { alert('Please enter both first and last name.'); return; }
+  if (editingStudentId) {
+    var s = students.find(function(x){ return x.id === editingStudentId; });
+    if (s) {
+      s.firstName = fn; s.lastName = ln;
+      s.year      = document.getElementById('s-year').value;
+      s.subject   = document.getElementById('s-subject').value;
+      s.board     = document.getElementById('s-board').value;
+      s.target    = document.getElementById('s-target').value;
+      s.sen       = document.getElementById('s-sen').value;
+      s.notes     = document.getElementById('s-notes').value;
+    }
+  } else {
+    students.push({
+      id: genId(),
+      firstName: fn,
+      lastName:  ln,
+      year:      document.getElementById('s-year').value,
+      subject:   document.getElementById('s-subject').value,
+      board:     document.getElementById('s-board').value,
+      target:    document.getElementById('s-target').value,
+      sen:       document.getElementById('s-sen').value,
+      notes:     document.getElementById('s-notes').value,
+      evals:     [],
+      createdAt: new Date().toISOString()
+    });
+  }
+  saveStudents();
+  closeStudentModal();
+  renderStudents();
+}
+function deleteStudent(id) {
+  var s = students.find(function(x){ return x.id === id; });
+  if (!s) return;
+  if (!confirm('Delete ' + s.firstName + ' ' + s.lastName + '? This will also delete all their evaluations. This cannot be undone.')) return;
+  students = students.filter(function(x){ return x.id !== id; });
+  saveStudents();
+  renderStudents();
+}
+
+/* ─── EVALUATION MODAL ─── */
+function openEvalModal(studentId, evalId) {
+  viewingStudentId = studentId;
+  editingEvalId    = evalId || null;
+  var s    = students.find(function(x){ return x.id === studentId; });
+  if (!s) return;
+  var e    = evalId ? (s.evals||[]).find(function(x){ return x.id === evalId; }) : null;
+  var subj = SUBJECTS[s.subject||'media'];
+  document.getElementById('eval-modal-title').textContent = e ? 'Edit Evaluation' : 'Add Evaluation';
+  document.getElementById('eval-student-info').innerHTML =
+    '<strong>' + s.firstName + ' ' + s.lastName + '</strong> &nbsp;·&nbsp; ' +
+    (s.year||'') + ' &nbsp;·&nbsp; ' + subj.name +
+    (s.target ? ' &nbsp;·&nbsp; Target grade: <strong>' + s.target + '</strong>' : '');
+
+  /* Populate topic select */
+  var topicSel = document.getElementById('e-topic');
+  topicSel.innerHTML = '<option value="">All topics / general</option>' +
+    subj.topics.map(function(t){ return '<option value="' + t.title + '"' + (e && e.topic === t.title ? ' selected' : '') + '>' + t.title + '</option>'; }).join('');
+
+  document.getElementById('e-type').value      = e ? (e.type||'') : '';
+  document.getElementById('e-date').value      = e ? (e.date||new Date().toISOString().slice(0,10)) : new Date().toISOString().slice(0,10);
+  document.getElementById('e-score').value     = e ? (e.score||'') : '';
+  document.getElementById('e-outof').value     = e ? (e.outof||'') : '';
+  document.getElementById('e-grade').value     = e ? (e.grade||'') : '';
+  document.getElementById('e-strengths').value = e ? (e.strengths||'') : '';
+  document.getElementById('e-develop').value   = e ? (e.develop||'') : '';
+  document.getElementById('e-nextsteps').value = e ? (e.nextsteps||'') : '';
+  document.getElementById('eval-modal').style.display = 'flex';
+}
+function closeEvalModal() {
+  document.getElementById('eval-modal').style.display = 'none';
+}
+function saveEval() {
+  var type = document.getElementById('e-type').value;
+  if (!type) { alert('Please select an assessment type.'); return; }
+  var s = students.find(function(x){ return x.id === viewingStudentId; });
+  if (!s) return;
+  if (!s.evals) s.evals = [];
+  var entry = {
+    id:        editingEvalId || genId(),
+    type:      type,
+    date:      document.getElementById('e-date').value || new Date().toISOString().slice(0,10),
+    score:     document.getElementById('e-score').value,
+    outof:     document.getElementById('e-outof').value,
+    grade:     document.getElementById('e-grade').value,
+    topic:     document.getElementById('e-topic').value,
+    strengths: document.getElementById('e-strengths').value,
+    develop:   document.getElementById('e-develop').value,
+    nextsteps: document.getElementById('e-nextsteps').value,
+    createdAt: new Date().toISOString()
+  };
+  if (editingEvalId) {
+    var idx = s.evals.findIndex(function(x){ return x.id === editingEvalId; });
+    if (idx >= 0) s.evals[idx] = entry;
+  } else {
+    s.evals.push(entry);
+  }
+  s.evals.sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+  saveStudents();
+  closeEvalModal();
+  renderStudents();
+  if (document.getElementById('student-detail-modal').style.display !== 'none') {
+    openStudentDetail(viewingStudentId);
+  }
+}
+function deleteEval(studentId, evalId) {
+  var s = students.find(function(x){ return x.id === studentId; });
+  if (!s || !confirm('Delete this evaluation?')) return;
+  s.evals = (s.evals||[]).filter(function(x){ return x.id !== evalId; });
+  saveStudents();
+  openStudentDetail(studentId);
+  renderStudents();
+}
+
+/* ─── STUDENT DETAIL VIEW ─── */
+function openStudentDetail(id) {
+  var s = students.find(function(x){ return x.id === id; });
+  if (!s) return;
+  viewingStudentId = id;
+  var col   = avatarColour(s.id);
+  var evals = (s.evals || []).slice().reverse(); /* most recent first */
+  var subj  = SUBJECTS[s.subject||'media'];
+  var subjCol = { media:'ctag-g', photo:'ctag-a', graphic:'ctag-p' }[s.subject||'media'] || 'ctag-b';
+
+  /* Score calculations */
+  var scored  = (s.evals||[]).filter(function(e){ return e.score !== '' && e.outof; });
+  var avgPct  = scored.length ? Math.round(scored.reduce(function(a,e){ return a+(parseInt(e.score)/parseInt(e.outof)*100); },0)/scored.length) : null;
+  var gradeNums = (s.evals||[]).filter(function(e){ return e.grade && !isNaN(e.grade); }).map(function(e){ return parseInt(e.grade); });
+  var avgGrade  = gradeNums.length ? (gradeNums.reduce(function(a,b){return a+b;},0)/gradeNums.length).toFixed(1) : null;
+
+  /* Topic breakdown */
+  var topicData = {};
+  subj.topics.forEach(function(t){
+    var te = (s.evals||[]).filter(function(e){ return e.topic === t.title && e.score !== '' && e.outof; });
+    if (te.length) {
+      topicData[t.title] = Math.round(te.reduce(function(a,e){ return a+(parseInt(e.score)/parseInt(e.outof)*100); },0)/te.length);
+    }
+  });
+
+  /* Score trend (last 8 scored evals) */
+  var trendData = scored.slice(-8).map(function(e){ return Math.round(parseInt(e.score)/parseInt(e.outof)*100); });
+
+  var html = '<div class="sd-header">' +
+    '<div class="sd-avatar" style="background:' + col + '">' + initials(s) + '</div>' +
+    '<div>' +
+      '<div class="sd-name">' + s.firstName + ' ' + s.lastName + '</div>' +
+      '<div class="sd-meta">' + (s.year||'No year') + ' &nbsp;·&nbsp; ' + subj.name + ' &nbsp;·&nbsp; ' + subj.boards[s.board||'aqa'].name + '</div>' +
+    '</div>' +
+    '<div class="sd-actions">' +
+      '<button class="btn-sm" onclick="openEvalModal(\'' + s.id + '\')"><i class="ti ti-plus"></i> Add eval</button>' +
+      '<button class="btn-sm" onclick="openStudentModal(\'' + s.id + '\')"><i class="ti ti-edit"></i> Edit</button>' +
+      '<button class="btn-sm" onclick="printStudentReport(\'' + s.id + '\')"><i class="ti ti-printer"></i> Report</button>' +
+      '<button class="ltw-close" onclick="closeStudentDetail()" style="margin-left:4px"><i class="ti ti-x"></i></button>' +
+    '</div>' +
+    '</div>';
+
+  /* Tags */
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem">' +
+    '<span class="ctag ' + subjCol + '">' + subj.name + '</span>' +
+    '<span class="ctag ctag-b">' + subj.boards[s.board||'aqa'].name + '</span>' +
+    (s.target ? '<span class="ctag ctag-g">Target: ' + s.target + '</span>' : '') +
+    (s.sen && s.sen.trim() ? '<span class="sen-badge"><i class="ti ti-accessibility" style="font-size:12px"></i> ' + s.sen + '</span>' : '') +
+    '</div>';
+
+  /* Stats row */
+  html += '<div class="sd-stats-row">' +
+    '<div class="sd-stat"><div class="v">' + (s.evals||[]).length + '</div><div class="l">Evaluations</div></div>' +
+    '<div class="sd-stat"><div class="v">' + (avgPct !== null ? avgPct + '%' : '—') + '</div><div class="l">Avg score</div></div>' +
+    '<div class="sd-stat"><div class="v">' + (avgGrade || '—') + '</div><div class="l">Avg grade</div></div>' +
+    '<div class="sd-stat"><div class="v">' + (s.target || '—') + '</div><div class="l">Target</div></div>' +
+    '</div>';
+
+  /* Score trend sparkline */
+  if (trendData.length > 1) {
+    var maxV = Math.max.apply(null, trendData) || 100;
+    html += '<div class="sd-section">' +
+      '<div class="sd-section-title"><i class="ti ti-trending-up"></i> Score trend (recent assessments)</div>' +
+      '<div class="eval-trend">' +
+      trendData.map(function(v){
+        var h = Math.max(4, Math.round(v/maxV*28));
+        var col2 = v >= 70 ? 'var(--green)' : v >= 50 ? 'var(--amber)' : 'var(--red)';
+        return '<div class="eval-trend-bar" style="height:' + h + 'px;background:' + col2 + '" title="' + v + '%"></div>';
+      }).join('') +
+      '</div></div>';
+  }
+
+  /* Topic breakdown */
+  if (Object.keys(topicData).length) {
+    html += '<div class="sd-section"><div class="sd-section-title"><i class="ti ti-chart-bar"></i> Performance by topic</div>' +
+      subj.topics.map(function(t){
+        var pct = topicData[t.title];
+        if (pct === undefined) return '';
+        var fillCol = pct >= 70 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+        return '<div class="sd-topic-row">' +
+          '<span class="sd-topic-name">' + t.title + '</span>' +
+          '<div class="sd-topic-bar"><div class="sd-topic-fill" style="width:' + pct + '%;background:' + fillCol + '"></div></div>' +
+          '<span class="sd-topic-pct">' + pct + '%</span></div>';
+      }).join('') + '</div>';
+  }
+
+  /* Notes */
+  if (s.notes && s.notes.trim()) {
+    html += '<div class="sd-section"><div class="sd-section-title"><i class="ti ti-notes"></i> Teacher notes</div>' +
+      '<div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--radius);padding:.75rem 1rem;font-size:13px;color:var(--amber-d);line-height:1.6">' + s.notes.replace(/\n/g,'<br>') + '</div></div>';
+  }
+
+  /* Evaluations list */
+  var typeLabels = { quiz:'Quiz', mock:'Mock exam', written:'Written', portfolio:'Portfolio', verbal:'Verbal', homework:'Homework', classwork:'Classwork' };
+  html += '<div class="sd-section"><div class="sd-section-title"><i class="ti ti-list"></i> All evaluations (' + evals.length + ')</div>';
+  if (evals.length === 0) {
+    html += '<p style="color:var(--text3);font-size:13px">No evaluations yet — click <strong>Add eval</strong> above.</p>';
+  } else {
+    html += evals.map(function(e){
+      var scoreStr = (e.score !== '' && e.outof) ? e.score + '/' + e.outof : '';
+      var gradeStr = e.grade ? ' · Grade ' + e.grade : '';
+      var dateStr  = e.date ? new Date(e.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '';
+      return '<div class="eval-entry">' +
+        '<div class="eval-entry-header">' +
+          '<span class="eval-type-badge">' + (typeLabels[e.type]||e.type) + '</span>' +
+          (e.topic ? '<span class="eval-topic">' + e.topic + '</span>' : '') +
+          (scoreStr ? '<span class="eval-score">' + scoreStr + gradeStr + '</span>' : (gradeStr ? '<span class="eval-score">' + gradeStr.slice(3) + '</span>' : '')) +
+          '<span class="eval-date">' + dateStr + '</span>' +
+        '</div>' +
+        '<div class="eval-body">' +
+          (e.strengths ? '<div><strong>✓ Strengths:</strong> ' + e.strengths + '</div>' : '') +
+          (e.develop   ? '<div style="margin-top:3px"><strong>△ Develop:</strong> ' + e.develop + '</div>' : '') +
+          (e.nextsteps ? '<div style="margin-top:3px"><strong>→ Next steps:</strong> ' + e.nextsteps + '</div>' : '') +
+        '</div>' +
+        '<div class="eval-entry-actions">' +
+          '<button class="btn-sm" onclick="openEvalModal(\'' + s.id + '\',\'' + e.id + '\')"><i class="ti ti-edit"></i> Edit</button>' +
+          '<button class="btn-sm" onclick="deleteEval(\'' + s.id + '\',\'' + e.id + '\')" style="color:var(--red)"><i class="ti ti-trash"></i> Delete</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+  html += '</div>';
+
+  setEl('student-detail-content', html);
+  document.getElementById('student-detail-modal').style.display = 'flex';
+}
+function closeStudentDetail() {
+  document.getElementById('student-detail-modal').style.display = 'none';
+}
+
+/* ─── PRINT STUDENT REPORT ─── */
+function printStudentReport(id) {
+  var s = students.find(function(x){ return x.id === id; });
+  if (!s) return;
+  var subj  = SUBJECTS[s.subject||'media'];
+  var evals = (s.evals||[]).slice().reverse();
+  var today = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var typeLabels = { quiz:'Quiz', mock:'Mock exam', written:'Written question', portfolio:'Portfolio review', verbal:'Verbal assessment', homework:'Homework', classwork:'Classwork' };
+
+  var win = window.open('','_blank');
+  var scored = evals.filter(function(e){ return e.score !== '' && e.outof; });
+  var avgPct = scored.length ? Math.round(scored.reduce(function(a,e){ return a+(parseInt(e.score)/parseInt(e.outof)*100); },0)/scored.length) : null;
+
+  win.document.write('<!DOCTYPE html><html><head><title>Student Report — ' + s.firstName + ' ' + s.lastName + '</title>' +
+    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;padding:2rem;color:#111;max-width:800px;margin:0 auto}' +
+    'h1{font-size:22px;margin-bottom:4px}h2{font-size:14px;font-weight:400;color:#666;margin-bottom:1rem}' +
+    '.meta{display:flex;gap:1rem;font-size:12px;color:#555;margin-bottom:1.5rem;flex-wrap:wrap}' +
+    '.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}' +
+    '.stat{background:#f5f5f5;border-radius:6px;padding:10px;text-align:center}.stat .v{font-size:22px;font-weight:700;color:#1D9E75}.stat .l{font-size:10px;color:#888;margin-top:2px}' +
+    '.eval{border:1px solid #ddd;border-radius:6px;padding:.75rem;margin-bottom:.5rem}' +
+    '.eval-h{display:flex;gap:8px;align-items:center;margin-bottom:.3rem;flex-wrap:wrap}' +
+    '.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:#E1F5EE;color:#085041}' +
+    '.date{font-size:11px;color:#888;margin-left:auto}.score{font-size:12px;font-weight:700}' +
+    '.body{font-size:12px;color:#444;line-height:1.5}' +
+    'footer{margin-top:2rem;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:.5rem;display:flex;justify-content:space-between}' +
+    '@media print{body{padding:1rem}}</style></head><body>');
+  win.document.write('<h1>' + s.firstName + ' ' + s.lastName + '</h1>');
+  win.document.write('<h2>Student Progress Report — ' + subj.name + '</h2>');
+  win.document.write('<div class="meta"><span>Year: ' + (s.year||'—') + '</span><span>Board: ' + subj.boards[s.board||'aqa'].name + '</span>' + (s.target?'<span>Target grade: '+s.target+'</span>':'') + (s.sen?'<span>SEN: '+s.sen+'</span>':'') + '</div>');
+  win.document.write('<div class="stats">' +
+    '<div class="stat"><div class="v">' + evals.length + '</div><div class="l">Evaluations</div></div>' +
+    '<div class="stat"><div class="v">' + (avgPct !== null ? avgPct + '%' : '—') + '</div><div class="l">Avg score</div></div>' +
+    '<div class="stat"><div class="v">' + (s.target||'—') + '</div><div class="l">Target grade</div></div>' +
+    '<div class="stat"><div class="v">' + evals.length + '</div><div class="l">Total evals</div></div>' +
+    '</div>');
+  if (s.notes) win.document.write('<div style="background:#FFFDE7;border:1px solid #F9C74F;border-radius:6px;padding:.75rem;margin-bottom:1rem;font-size:12px"><strong>Teacher notes:</strong> ' + s.notes + '</div>');
+  win.document.write('<h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#666;margin-bottom:.5rem">Evaluation history</h3>');
+  if (evals.length === 0) {
+    win.document.write('<p style="color:#888;font-size:13px">No evaluations recorded yet.</p>');
+  } else {
+    evals.forEach(function(e){
+      var scoreStr = (e.score !== '' && e.outof) ? e.score+'/'+e.outof : '';
+      var dateStr  = e.date ? new Date(e.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '';
+      win.document.write('<div class="eval"><div class="eval-h"><span class="badge">' + (typeLabels[e.type]||e.type) + '</span>' +
+        (e.topic ? '<span style="font-size:11px;color:#888">'+e.topic+'</span>' : '') +
+        (scoreStr ? '<span class="score">'+scoreStr+(e.grade?' · Grade '+e.grade:'')+'</span>' : '') +
+        '<span class="date">'+dateStr+'</span></div><div class="body">' +
+        (e.strengths ? '<div><strong>Strengths:</strong> '+e.strengths+'</div>' : '') +
+        (e.develop   ? '<div><strong>Develop:</strong> '+e.develop+'</div>' : '') +
+        (e.nextsteps ? '<div><strong>Next steps:</strong> '+e.nextsteps+'</div>' : '') +
+        '</div></div>');
+    });
+  }
+  win.document.write('<footer><span>Oak Hill School — Confidential student record</span><span>Generated: ' + today + '</span></footer>');
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 300);
+}
+
+/* ─── CLASS REPORT (all students) ─── */
+function printClassReport() {
+  var today = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>Class Report — Oak Hill</title>' +
+    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;padding:2rem;color:#111;max-width:900px;margin:0 auto}' +
+    'h1{font-size:20px;margin-bottom:.25rem}h2{font-size:13px;color:#666;font-weight:400;margin-bottom:1.5rem}' +
+    'table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:2rem}' +
+    'th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#666;padding:6px 8px;border-bottom:2px solid #ddd;text-align:left;background:#fafafa}' +
+    'td{padding:8px;border-bottom:1px solid #eee;vertical-align:top}' +
+    'tr:hover td{background:#fafafa}' +
+    'footer{font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:.5rem;display:flex;justify-content:space-between}' +
+    '@media print{body{padding:1rem}}</style></head><body>');
+  win.document.write('<h1>Class Progress Report — Oak Hill Creative GCSEs</h1>');
+  win.document.write('<h2>All registered students &nbsp;·&nbsp; Generated: ' + today + '</h2>');
+  win.document.write('<table><thead><tr><th>Student</th><th>Year</th><th>Subject</th><th>Board</th><th>Target</th><th>SEN</th><th>Evals</th><th>Avg score</th><th>Latest eval</th></tr></thead><tbody>');
+  students.forEach(function(s){
+    var scored = (s.evals||[]).filter(function(e){ return e.score !== '' && e.outof; });
+    var avgPct = scored.length ? Math.round(scored.reduce(function(a,e){ return a+(parseInt(e.score)/parseInt(e.outof)*100); },0)/scored.length)+'%' : '—';
+    var lastE  = (s.evals||[]).length ? (s.evals[s.evals.length-1].date ? new Date(s.evals[s.evals.length-1].date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—') : '—';
+    var subj   = { media:'Media Studies', photo:'Photography', graphic:'Graphic Comm' }[s.subject||'media'] || s.subject;
+    var board  = SUBJECTS[s.subject||'media'].boards[s.board||'aqa'].name;
+    win.document.write('<tr><td><strong>' + s.firstName + ' ' + s.lastName + '</strong></td><td>' + (s.year||'—') + '</td><td>' + subj + '</td><td>' + board + '</td><td>' + (s.target||'—') + '</td><td>' + (s.sen&&s.sen.trim()?'Yes':'No') + '</td><td>' + (s.evals||[]).length + '</td><td>' + avgPct + '</td><td>' + lastE + '</td></tr>');
+  });
+  win.document.write('</tbody></table>');
+  win.document.write('<footer><span>Oak Hill School — Confidential</span><span>' + today + '</span></footer>');
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 300);
+}
+
+/* ─── EXPORT CSV ─── */
+function exportStudents() {
+  var rows = ['Name,Year,Subject,Board,Target,SEN,Total Evals,Avg Score,Last Eval Date'];
+  students.forEach(function(s){
+    var scored = (s.evals||[]).filter(function(e){ return e.score !== '' && e.outof; });
+    var avgPct = scored.length ? Math.round(scored.reduce(function(a,e){ return a+(parseInt(e.score)/parseInt(e.outof)*100); },0)/scored.length)+'%' : '';
+    var lastE  = (s.evals||[]).length ? (s.evals[s.evals.length-1].date||'') : '';
+    var subj   = { media:'Media Studies', photo:'Photography', graphic:'Graphic Communication' }[s.subject||'media'] || s.subject;
+    rows.push([
+      '"'+s.firstName+' '+s.lastName+'"',
+      s.year||'', subj,
+      SUBJECTS[s.subject||'media'].boards[s.board||'aqa'].name,
+      s.target||'', s.sen||'',
+      (s.evals||[]).length, avgPct, lastE
+    ].join(','));
+  });
+  var blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'oakhill-students-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── INIT STUDENTS ─── */
+(function initStudents(){
+  loadStudents();
 })();
