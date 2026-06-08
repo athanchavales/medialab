@@ -1551,9 +1551,13 @@ function renderHelp() {
 
   /* ── Hero ── */
   html += '<div class="help-hero">' +
-    '<div class="help-hero-badge">Oak Hill Creative GCSEs — ' + S.name + '</div>' +
+    '<div class="help-hero-badge">Oak Hill Media Lab — ' + S.name + '</div>' +
     '<h1>Teacher Guide</h1>' +
-    '<p>Everything you need to use this platform confidently — features reference, classroom setup, lesson delivery order, SEN support, student evaluation and time-saving shortcuts. Updated for v8.</p>' +
+    '<p>Everything you need to use this platform confidently — features reference, classroom setup, lesson delivery order, SEN support, student evaluation and time-saving shortcuts. Updated for v9.</p>' +
+    '<div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button class="btn-sm" style="background:var(--acc);color:#fff;border-color:var(--acc)" onclick="openChangePinModal()"><i class="ti ti-lock"></i> Change teacher PIN</button>' +
+      '<button class="btn-sm" onclick="lockTeacher()"><i class="ti ti-lock"></i> Lock & return to student view</button>' +
+    '</div>' +
     '</div>';
 
   /* ── Quick-jump cards ── */
@@ -1577,13 +1581,15 @@ function renderHelp() {
   html += helpSection('hs-start','ti-bolt','background:var(--green-l);color:var(--green)','Getting Started','Open the app, pick your subject and board, and you\'re ready to teach in under 2 minutes.',
     '<div class="help-sequence">' +
     helpStep(1,'Open index.html in Chrome or Edge','Double-click the <strong>index.html</strong> file inside the oakhill folder. The platform runs entirely offline — no internet needed. Use Chrome or Edge for full speech-to-text support.','Do a hard refresh (Ctrl+Shift+R / Cmd+Shift+R) if you see errors after updating files') +
-    helpStep(2,'Select your subject','Click <strong>Media Studies</strong>, <strong>Photography</strong> or <strong>Graphic Communication</strong> in the black bar at the top. Everything updates instantly — topics, lessons, quiz questions, glossary, set texts, exam board comparison.') +
-    helpStep(3,'Set your exam board','Use the <strong>Exam Board dropdown</strong> in the top-right header. This updates the board info in Teach, the set texts panel and the practitioner content. Change it at any time.','The Exam Boards tab has a full AQA vs OCR vs Eduqas comparison with an Oak Hill recommendation') +
-    helpStep(4,'Set your exam date','Click <strong>"Set exam date"</strong> in the header to enter your GCSE exam date. A live countdown appears (amber inside 4 weeks, red inside 7 days) and persists between sessions.') +
-    helpStep(5,'Open a lesson plan','Go to the Lessons tab. Click Lesson 1 to open the full plan. You\'ll see timed activities, the SEN adaptations box, resources needed and homework. Click <strong>Start Timer</strong> to launch the lesson countdown widget.','The floating lesson timer shows current activity, time remaining and progress dots') +
-    helpStep(6,'Put the Teach panel on the projector','Switch to Teach, select today\'s topic on the left. Key concepts display with their intro and exam focus box. For a cleaner projector view use <strong>Classroom Mode</strong> (button in the top bar).') +
+    helpStep(2,'Unlock teacher tools with your PIN','Click the <strong>Student view</strong> button in the top-right header (or any locked tab). Enter your 4-digit PIN — the default is <strong>1234</strong>. Change it immediately using the button at the top of this Help page.','Teacher tools auto-lock after 45 minutes of inactivity — students can\'t access mark schemes or student data') +
+    helpStep(3,'Select your subject','Click <strong>Media Studies</strong>, <strong>Photography</strong> or <strong>Graphic Communication</strong> in the top bar. Everything updates instantly.') +
+    helpStep(4,'Set your exam board','Use the <strong>Exam Board dropdown</strong> in the header. Updates the board info in Teach, set texts and practitioners.','The Exam Boards tab has a full AQA vs OCR vs Eduqas comparison with an Oak Hill recommendation') +
+    helpStep(5,'Set your exam date','Click <strong>"Set exam date"</strong> in the header. A live countdown appears — amber inside 4 weeks, red inside 7 days.') +
+    helpStep(6,'Open a lesson plan','Go to the Lessons tab. Click Lesson 1 to open the full plan. Click <strong>Start Timer</strong> to launch the lesson countdown widget.') +
+    helpStep(7,'Put the Teach panel on the projector','Switch to Teach, select today\'s topic. Use <strong>Classroom Mode</strong> (top bar) for a clean full-screen projector view.') +
     '</div>' +
-    '<div class="help-tip info"><i class="ti ti-wifi-off"></i><div><strong>Works completely offline.</strong> Once downloaded, no internet is needed. The only exception is external resource links — those open in a new tab and need a connection.</div></div>'
+    '<div class="help-tip" style="background:var(--green-l);border-color:var(--green);color:var(--green-d)"><i class="ti ti-shield-lock" style="color:var(--green)"></i><div><strong>Student vs Teacher view:</strong> When locked, students can access Teach, Theory, Set Texts, Quick Quiz and Glossary freely. Mark schemes, lesson plans, student data and mock exam controls are hidden behind your PIN. Lock it when students are using devices independently.</div></div>' +
+    '<div class="help-tip info"><i class="ti ti-wifi-off"></i><div><strong>Works completely offline.</strong> Once downloaded, no internet is needed. External resource links need a connection to open.</div></div>'
   );
 
   /* ── Section 2: All Features ── */
@@ -2762,3 +2768,262 @@ function exportStudents() {
 }
 
 /* loadStudents() is now called in the main init() function at the top of the file */
+
+/* ═══════════════════════════════════════
+   TEACHER PIN SYSTEM
+═══════════════════════════════════════ */
+
+/* ─── STATE ─── */
+var teacherUnlocked   = false;
+var pinBuffer         = '';
+var pinPendingPanel   = null;  /* panel to open after successful unlock */
+var pinPendingBtn     = null;
+var autoLockTimer     = null;
+var AUTO_LOCK_MINUTES = 45;    /* auto-lock after this many idle minutes */
+
+var TEACHER_PANELS = ['lessons','written','mock','boards','worksheets','progress','help','students'];
+var DEFAULT_PIN    = '1234';
+
+/* ─── PIN STORAGE ─── */
+function getStoredPin() {
+  try { return localStorage.getItem('oakhill_pin') || DEFAULT_PIN; } catch(e) { return DEFAULT_PIN; }
+}
+function setStoredPin(pin) {
+  try { localStorage.setItem('oakhill_pin', pin); } catch(e) {}
+}
+
+/* ─── OVERRIDE showPanel TO INTERCEPT TEACHER PANELS ─── */
+var _origShowPanel = showPanel;
+showPanel = function(id, btn) {
+  if (TEACHER_PANELS.indexOf(id) !== -1 && !teacherUnlocked) {
+    pinPendingPanel = id;
+    pinPendingBtn   = btn;
+    openPinModal();
+    return;
+  }
+  _origShowPanel(id, btn);
+};
+
+/* ─── PIN MODAL ─── */
+function openPinModal(forceChange) {
+  pinBuffer = '';
+  updatePinDots();
+  setEl('pin-error', '');
+  setEl('pin-title',    forceChange ? 'Change PIN' : 'Teacher Access');
+  setEl('pin-subtitle', forceChange ? 'Enter your current PIN to continue' : 'Enter your PIN to unlock teacher tools');
+  var hint = document.getElementById('pin-hint');
+  if (hint) hint.style.display = getStoredPin() === DEFAULT_PIN ? 'flex' : 'none';
+  document.getElementById('pin-backdrop').style.display = 'flex';
+  document.getElementById('pin-box').classList.remove('shake');
+}
+
+function closePinModal() {
+  document.getElementById('pin-backdrop').style.display = 'none';
+  pinBuffer = '';
+  pinPendingPanel = null;
+  pinPendingBtn   = null;
+}
+
+function pinKey(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(checkPin, 120);
+  }
+}
+
+function pinClear() {
+  if (pinBuffer.length > 0) {
+    pinBuffer = pinBuffer.slice(0, -1);
+    updatePinDots();
+    setEl('pin-error', '');
+  }
+}
+
+function updatePinDots() {
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('pd' + i);
+    if (!dot) continue;
+    dot.classList.toggle('filled', i < pinBuffer.length);
+    dot.classList.remove('error');
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === getStoredPin()) {
+    unlockTeacher();
+    closePinModal();
+    if (pinPendingPanel) {
+      _origShowPanel(pinPendingPanel, pinPendingBtn);
+      pinPendingPanel = null;
+      pinPendingBtn   = null;
+    }
+  } else {
+    /* Wrong PIN */
+    for (var i = 0; i < 4; i++) {
+      var dot = document.getElementById('pd' + i);
+      if (dot) { dot.classList.remove('filled'); dot.classList.add('error'); }
+    }
+    var box = document.getElementById('pin-box');
+    if (box) { box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); }
+    setEl('pin-error', 'Incorrect PIN — try again');
+    setTimeout(function() {
+      pinBuffer = '';
+      updatePinDots();
+    }, 600);
+  }
+}
+
+/* ─── TEACHER MODE ─── */
+function unlockTeacher() {
+  teacherUnlocked = true;
+  document.body.classList.add('teacher-unlocked');
+  updateTeacherBadge();
+  startAutoLockTimer();
+}
+
+function lockTeacher() {
+  teacherUnlocked = false;
+  document.body.classList.remove('teacher-unlocked');
+  updateTeacherBadge();
+  clearAutoLock();
+  /* If currently on a teacher panel, go back to Teach */
+  var active = document.querySelector('.panel.active');
+  if (active) {
+    var id = active.id.replace('panel-','');
+    if (TEACHER_PANELS.indexOf(id) !== -1) {
+      _origShowPanel('teach', document.querySelector('.tab-btn'));
+    }
+  }
+}
+
+function toggleTeacherMode() {
+  if (teacherUnlocked) {
+    if (confirm('Lock teacher tools? Students will only see the open panels.')) {
+      lockTeacher();
+    }
+  } else {
+    pinPendingPanel = null;
+    pinPendingBtn   = null;
+    openPinModal();
+  }
+}
+
+function updateTeacherBadge() {
+  var badge = document.getElementById('teacher-badge');
+  var icon  = document.getElementById('teacher-badge-icon');
+  var label = document.getElementById('teacher-badge-label');
+  if (!badge) return;
+  if (teacherUnlocked) {
+    badge.classList.add('unlocked');
+    if (icon)  icon.className  = 'ti ti-lock-open';
+    if (label) label.textContent = 'Teacher';
+  } else {
+    badge.classList.remove('unlocked');
+    if (icon)  icon.className  = 'ti ti-lock';
+    if (label) label.textContent = 'Student view';
+  }
+}
+
+/* ─── AUTO-LOCK ─── */
+function startAutoLockTimer() {
+  clearAutoLock();
+  var totalSecs = AUTO_LOCK_MINUTES * 60;
+  var elapsed   = 0;
+  var fill      = getOrCreateAutoLockBar();
+
+  autoLockTimer = setInterval(function() {
+    elapsed++;
+    var pct = Math.max(0, 100 - (elapsed / totalSecs * 100));
+    if (fill) fill.style.width = pct + '%';
+    if (elapsed >= totalSecs) {
+      clearAutoLock();
+      lockTeacher();
+      showAutoLockNotice();
+    }
+  }, 1000);
+
+  /* Reset timer on any interaction */
+  ['click','keydown','touchstart'].forEach(function(ev) {
+    document.removeEventListener(ev, resetAutoLock);
+    document.addEventListener(ev, resetAutoLock, { passive: true });
+  });
+}
+
+function resetAutoLock() {
+  if (!teacherUnlocked) return;
+  clearAutoLock();
+  startAutoLockTimer();
+}
+
+function clearAutoLock() {
+  if (autoLockTimer) { clearInterval(autoLockTimer); autoLockTimer = null; }
+  var fill = document.getElementById('autolock-fill');
+  if (fill) fill.style.width = '100%';
+}
+
+function getOrCreateAutoLockBar() {
+  var bar = document.getElementById('autolock-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.className = 'autolock-bar';
+    bar.id = 'autolock-bar';
+    bar.innerHTML = '<div class="autolock-fill" id="autolock-fill"></div>';
+    document.body.appendChild(bar);
+  }
+  return document.getElementById('autolock-fill');
+}
+
+function showAutoLockNotice() {
+  /* Brief toast at the top */
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#062B1D;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
+  toast.innerHTML = '<i class="ti ti-lock" style="margin-right:6px"></i> Teacher tools locked after ' + AUTO_LOCK_MINUTES + ' minutes of inactivity';
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 4000);
+}
+
+/* ─── CHANGE PIN ─── */
+function openChangePinModal() {
+  document.getElementById('cp-current').value = '';
+  document.getElementById('cp-new').value     = '';
+  document.getElementById('cp-confirm').value = '';
+  setEl('cp-error', '');
+  document.getElementById('change-pin-modal').style.display = 'flex';
+}
+function closeChangePinModal() {
+  document.getElementById('change-pin-modal').style.display = 'none';
+}
+function saveNewPin() {
+  var current = document.getElementById('cp-current').value;
+  var newPin  = document.getElementById('cp-new').value;
+  var confirm = document.getElementById('cp-confirm').value;
+  if (current !== getStoredPin()) { setEl('cp-error', 'Current PIN is incorrect'); return; }
+  if (!/^\d{4}$/.test(newPin))    { setEl('cp-error', 'PIN must be exactly 4 digits'); return; }
+  if (newPin !== confirm)         { setEl('cp-error', 'New PINs do not match'); return; }
+  if (newPin === DEFAULT_PIN)     { setEl('cp-error', 'Please choose a PIN other than 1234'); return; }
+  setStoredPin(newPin);
+  closeChangePinModal();
+  /* Show success */
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#062B1D;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999';
+  toast.innerHTML = '<i class="ti ti-check" style="margin-right:6px;color:#4ade80"></i> PIN updated successfully';
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+
+/* ─── KEYBOARD SUPPORT ─── */
+document.addEventListener('keydown', function(e) {
+  var backdrop = document.getElementById('pin-backdrop');
+  if (!backdrop || backdrop.style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+  else if (e.key === 'Backspace')   pinClear();
+  else if (e.key === 'Escape')      closePinModal();
+});
+
+/* ─── INIT ─── */
+(function initPinSystem() {
+  updateTeacherBadge();
+  /* Add Change PIN button to Teacher Help when rendered */
+})();

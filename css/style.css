@@ -2772,3 +2772,229 @@ body {
   .student-cards-grid { grid-template-columns: 1fr; }
   .students-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ═══════════════════════════════════════
+   TEACHER PIN SYSTEM
+═══════════════════════════════════════ */
+
+/* Lock icon on teacher tabs */
+.tab-lock {
+  font-size: 10px !important;
+  opacity: .5;
+  margin-left: 2px;
+}
+.teacher-unlocked .tab-lock { display: none; }
+
+/* Teacher badge in header */
+.teacher-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.teacher-badge i { font-size: 13px; }
+.teacher-badge:hover { border-color: var(--acc); color: var(--acc); }
+.teacher-badge.unlocked {
+  background: var(--green-l);
+  border-color: var(--green);
+  color: var(--green-d);
+}
+.teacher-badge.unlocked i { color: var(--green); }
+
+/* PIN backdrop */
+.pin-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 26, 16, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* PIN box */
+.pin-box {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 2rem 1.75rem 1.75rem;
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(17,93,65,0.3);
+  animation: pinPop .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pinPop {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.pin-box.shake {
+  animation: pinShake .4s ease;
+}
+@keyframes pinShake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-10px); }
+  40%      { transform: translateX(10px); }
+  60%      { transform: translateX(-8px); }
+  80%      { transform: translateX(8px); }
+}
+
+/* PIN logo */
+.pin-logo { margin-bottom: 1rem; }
+.pin-logo-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #062B1D;
+  padding: 4px;
+}
+
+/* PIN title */
+.pin-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--acc);
+  margin-bottom: .25rem;
+}
+.pin-subtitle {
+  font-size: 13px;
+  color: var(--text3);
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+/* PIN dots */
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: .75rem;
+}
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: transparent;
+  transition: all .15s;
+}
+.pin-dot.filled {
+  background: var(--acc);
+  border-color: var(--acc);
+  transform: scale(1.1);
+}
+.pin-dot.error {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+/* PIN error */
+.pin-error {
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 600;
+  min-height: 18px;
+  margin-bottom: .5rem;
+}
+
+/* PIN keypad */
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 1rem 0 .75rem;
+}
+.pin-key {
+  height: 56px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin-key:hover { background: var(--acc-l); border-color: var(--acc); color: var(--acc); }
+.pin-key:active { transform: scale(0.93); }
+.pin-key-clear { font-size: 18px !important; color: var(--amber-d); background: var(--amber-l); border-color: var(--amber); }
+.pin-key-clear:hover { background: var(--amber); color: #fff; }
+.pin-key-cancel { font-size: 16px !important; color: var(--text3); }
+.pin-key-cancel:hover { background: var(--red-l); border-color: var(--red); color: var(--red); }
+
+/* PIN hint */
+.pin-hint {
+  font-size: 11.5px;
+  color: var(--text3);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  text-align: left;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.pin-hint i { font-size: 13px; flex-shrink: 0; margin-top: 1px; color: var(--acc); }
+.pin-hint strong { color: var(--text); }
+
+/* Locked panel overlay */
+.panel-locked-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  min-height: 300px;
+}
+.panel-locked-overlay i {
+  font-size: 52px;
+  color: var(--border2);
+  margin-bottom: 1rem;
+  display: block;
+}
+.panel-locked-overlay h3 { font-size: 18px; color: var(--text2); margin-bottom: .5rem; }
+.panel-locked-overlay p { font-size: 13px; color: var(--text3); margin-bottom: 1.25rem; }
+
+/* Auto-lock timer bar */
+.autolock-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  z-index: 300;
+  pointer-events: none;
+}
+.autolock-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--acc), var(--amber));
+  transition: width 1s linear;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .pin-box { padding: 1.5rem 1.25rem; }
+  .pin-key { height: 52px; font-size: 20px; }
+  .teacher-badge span { display: none; }
+}
