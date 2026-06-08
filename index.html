@@ -43,6 +43,15 @@
         <option value="eduqas">Eduqas</option>
       </select>
       <span class="board-badge" id="board-badge">AQA</span>
+      <!-- Exam countdown -->
+      <div class="exam-countdown" id="exam-countdown" title="Click to set exam date" onclick="openCountdownSetup()">
+        <i class="ti ti-calendar-event"></i>
+        <span id="countdown-display">Set exam date</span>
+      </div>
+      <!-- Sticky notes toggle -->
+      <button class="header-icon-btn" onclick="toggleStickyPanel()" title="Teacher notes">
+        <i class="ti ti-notes"></i>
+      </button>
       <div class="session-score" id="session-score" title="Session score">
         <i class="ti ti-chart-bar"></i>
         <span id="score-display">0 / 0</span>
@@ -323,6 +332,92 @@
     <span id="classroom-progress">Topic 1 of 5</span>
     <button onclick="classroomNext()">Next <i class="ti ti-chevron-right"></i></button>
   </div>
+</div>
+
+<!-- LESSON TIMER OVERLAY -->
+<div class="lesson-timer-widget" id="lesson-timer-widget" style="display:none">
+  <div class="ltw-header">
+    <span class="ltw-title" id="ltw-activity-label">Activity</span>
+    <button class="ltw-close" onclick="closeLessonTimer()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="ltw-clock" id="ltw-clock">35:00</div>
+  <div class="ltw-bar-track"><div class="ltw-bar-fill" id="ltw-bar-fill"></div></div>
+  <div class="ltw-activity-desc" id="ltw-activity-desc"></div>
+  <div class="ltw-controls">
+    <button class="ltw-btn" onclick="ltwPrev()"><i class="ti ti-skip-back"></i></button>
+    <button class="ltw-btn ltw-play" id="ltw-play-btn" onclick="ltwToggle()"><i class="ti ti-player-play"></i></button>
+    <button class="ltw-btn" onclick="ltwNext()"><i class="ti ti-skip-forward"></i></button>
+    <button class="ltw-btn ltw-restart" onclick="ltwRestart()" title="Restart activity"><i class="ti ti-refresh"></i></button>
+  </div>
+  <div class="ltw-progress-dots" id="ltw-dots"></div>
+</div>
+
+<!-- STICKY NOTES PANEL -->
+<div class="sticky-panel" id="sticky-panel" style="display:none">
+  <div class="sticky-header">
+    <div style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-notes" style="color:var(--amber)"></i>
+      <span style="font-weight:700;font-size:14px">Teacher Notes</span>
+    </div>
+    <button class="ltw-close" onclick="toggleStickyPanel()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="sticky-mic-row">
+    <button class="mic-btn" id="sticky-mic" onclick="toggleStickyMic()" title="Speak your note">
+      <i class="ti ti-microphone"></i>
+    </button>
+    <span class="mic-status" id="sticky-mic-status">Click mic to dictate</span>
+  </div>
+  <textarea class="sticky-textarea" id="sticky-textarea"
+    placeholder="Type or dictate your teaching notes here… saved automatically."
+    oninput="saveStickyNote()"></textarea>
+  <div class="sticky-footer">
+    <span id="sticky-word-count" style="font-size:11px;color:var(--text3)">0 words</span>
+    <button class="btn-sm" onclick="clearStickyNote()"><i class="ti ti-trash"></i> Clear</button>
+    <button class="btn-sm" onclick="printStickyNote()"><i class="ti ti-printer"></i> Print</button>
+  </div>
+</div>
+
+<!-- EXAM COUNTDOWN SETUP -->
+<div class="modal-backdrop" id="countdown-modal" style="display:none" onclick="closeCountdownSetup()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <i class="ti ti-calendar-event" style="color:var(--acc);font-size:22px"></i>
+      <h3>Set Exam Date</h3>
+      <button class="ltw-close" onclick="closeCountdownSetup()"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Enter the date of your GCSE examination. A countdown will appear in the header.</p>
+    <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:.4rem">Exam date</label>
+    <input type="date" id="exam-date-input" class="modal-input">
+    <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin:.75rem 0 .4rem">Label (optional)</label>
+    <input type="text" id="exam-label-input" class="modal-input" placeholder="e.g. Media Studies Paper 1">
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="start-btn" onclick="saveCountdown()" style="flex:1">Save countdown</button>
+      <button class="btn-sm" onclick="clearCountdown()"><i class="ti ti-trash"></i> Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT LESSON OVERLAY -->
+<div class="modal-backdrop" id="print-lesson-modal" style="display:none" onclick="closePrintLesson()">
+  <div class="modal-box" style="max-width:700px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <i class="ti ti-printer" style="color:var(--acc);font-size:22px"></i>
+      <h3>Print Lesson Plan</h3>
+      <button class="ltw-close" onclick="closePrintLesson()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="print-lesson-content" style="max-height:60vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:1rem;margin:.75rem 0"></div>
+    <div style="display:flex;gap:8px;margin-top:.75rem">
+      <button class="start-btn" onclick="doPrintLesson()"><i class="ti ti-printer"></i> Print / Save as PDF</button>
+      <button class="btn-sm" onclick="closePrintLesson()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPEECH-TO-TEXT STATUS (global, for written practice / quiz) -->
+<div class="stt-toast" id="stt-toast" style="display:none">
+  <i class="ti ti-microphone" style="color:#E55;font-size:18px"></i>
+  <span id="stt-toast-text">Listening…</span>
+  <button onclick="stopGlobalMic()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.7);font-size:18px"><i class="ti ti-x"></i></button>
 </div>
 
 <!-- PRINT STYLES -->

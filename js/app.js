@@ -1603,3 +1603,588 @@ function setEl(id, html) {
   var el = document.getElementById(id);
   if (el) el.innerHTML = html;
 }
+
+/* ═══════════════════════════════════════
+   NEW FEATURES — v5
+   Lesson Timer · Print Lesson · Sticky Notes
+   Exam Countdown · Differentiation · Speech-to-Text
+═══════════════════════════════════════ */
+
+/* ─── EXAM COUNTDOWN ─── */
+var countdownInterval = null;
+
+function openCountdownSetup() {
+  var saved = getSavedCountdown();
+  if (saved) {
+    document.getElementById('exam-date-input').value = saved.date || '';
+    document.getElementById('exam-label-input').value = saved.label || '';
+  }
+  document.getElementById('countdown-modal').style.display = 'flex';
+}
+function closeCountdownSetup() {
+  document.getElementById('countdown-modal').style.display = 'none';
+}
+function saveCountdown() {
+  var date  = document.getElementById('exam-date-input').value;
+  var label = document.getElementById('exam-label-input').value || 'Exam';
+  if (!date) { alert('Please select a date.'); return; }
+  try { localStorage.setItem('oakhill_exam_countdown', JSON.stringify({ date, label })); } catch(e) {}
+  closeCountdownSetup();
+  startCountdownTick();
+}
+function clearCountdown() {
+  try { localStorage.removeItem('oakhill_exam_countdown'); } catch(e) {}
+  document.getElementById('countdown-display').textContent = 'Set exam date';
+  var el = document.getElementById('exam-countdown');
+  el.classList.remove('urgent','soon');
+  closeCountdownSetup();
+}
+function getSavedCountdown() {
+  try { var s = localStorage.getItem('oakhill_exam_countdown'); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+}
+function startCountdownTick() {
+  updateCountdownDisplay();
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(updateCountdownDisplay, 60000);
+}
+function updateCountdownDisplay() {
+  var saved = getSavedCountdown();
+  if (!saved) return;
+  var now   = new Date();
+  var exam  = new Date(saved.date + 'T09:00:00');
+  var diff  = exam - now;
+  var el    = document.getElementById('exam-countdown');
+  var disp  = document.getElementById('countdown-display');
+  el.classList.remove('urgent','soon');
+  if (diff < 0) {
+    disp.textContent = saved.label + ' — done';
+  } else {
+    var days  = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    var weeks = Math.floor(days / 7);
+    var rem   = days % 7;
+    var txt   = saved.label + ': ';
+    if (weeks > 0) txt += weeks + 'w ';
+    if (rem > 0 || weeks === 0) txt += rem || days;
+    txt += weeks > 0 ? 'd' : ' days';
+    disp.textContent = txt;
+    if (days <= 7)  el.classList.add('urgent');
+    else if (days <= 28) el.classList.add('soon');
+  }
+}
+
+/* ─── STICKY NOTES ─── */
+var stickyMicRecogniser = null;
+var stickyMicActive = false;
+
+function toggleStickyPanel() {
+  var panel = document.getElementById('sticky-panel');
+  var btn   = document.querySelector('.header-icon-btn');
+  var isOpen = panel.style.display !== 'none' && panel.style.display !== '';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  if (btn) btn.classList.toggle('active', !isOpen);
+  if (!isOpen) {
+    var saved = '';
+    try { saved = localStorage.getItem('oakhill_sticky') || ''; } catch(e) {}
+    var ta = document.getElementById('sticky-textarea');
+    if (ta) { ta.value = saved; updateStickyWordCount(); }
+  }
+}
+function saveStickyNote() {
+  var ta = document.getElementById('sticky-textarea');
+  if (!ta) return;
+  try { localStorage.setItem('oakhill_sticky', ta.value); } catch(e) {}
+  updateStickyWordCount();
+}
+function updateStickyWordCount() {
+  var ta = document.getElementById('sticky-textarea');
+  var wc = document.getElementById('sticky-word-count');
+  if (!ta || !wc) return;
+  var words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  wc.textContent = words + ' word' + (words !== 1 ? 's' : '');
+}
+function clearStickyNote() {
+  if (!confirm('Clear all teacher notes?')) return;
+  var ta = document.getElementById('sticky-textarea');
+  if (ta) ta.value = '';
+  try { localStorage.removeItem('oakhill_sticky'); } catch(e) {}
+  updateStickyWordCount();
+}
+function printStickyNote() {
+  var ta = document.getElementById('sticky-textarea');
+  if (!ta || !ta.value.trim()) { alert('No notes to print.'); return; }
+  var win = window.open('','_blank');
+  win.document.write('<html><head><title>Teacher Notes — Oak Hill</title>' +
+    '<style>body{font-family:system-ui,sans-serif;padding:2rem;max-width:700px;margin:0 auto}' +
+    'h2{font-size:18px;border-bottom:2px solid #1D9E75;padding-bottom:.5rem}' +
+    'pre{font-family:inherit;white-space:pre-wrap;font-size:14px;line-height:1.7;color:#333}' +
+    'footer{margin-top:2rem;font-size:11px;color:#999;border-top:1px solid #ddd;padding-top:.5rem}</style>' +
+    '</head><body><h2>Teacher Notes — Oak Hill Creative GCSEs</h2>' +
+    '<pre>' + ta.value.replace(/</g,'&lt;') + '</pre>' +
+    '<footer>Printed ' + new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) + '</footer>' +
+    '</body></html>');
+  win.document.close();
+  win.print();
+}
+
+function toggleStickyMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Speech recognition is not supported in this browser. Try Chrome or Edge.');
+    return;
+  }
+  if (stickyMicActive) {
+    if (stickyMicRecogniser) stickyMicRecogniser.stop();
+    setStickyMicState(false);
+    return;
+  }
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  stickyMicRecogniser = new SR();
+  stickyMicRecogniser.lang = 'en-GB';
+  stickyMicRecogniser.continuous = true;
+  stickyMicRecogniser.interimResults = true;
+  var ta = document.getElementById('sticky-textarea');
+  var baseText = ta ? ta.value : '';
+  stickyMicRecogniser.onstart = function() { setStickyMicState(true); };
+  stickyMicRecogniser.onend   = function() { setStickyMicState(false); };
+  stickyMicRecogniser.onerror = function(e) {
+    setStickyMicState(false);
+    if (e.error !== 'no-speech') document.getElementById('sticky-mic-status').textContent = 'Error: ' + e.error;
+  };
+  stickyMicRecogniser.onresult = function(e) {
+    var interim = '', final = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    if (ta) {
+      baseText += final;
+      ta.value = baseText + interim;
+      saveStickyNote();
+    }
+  };
+  stickyMicRecogniser.start();
+}
+function setStickyMicState(on) {
+  stickyMicActive = on;
+  var btn = document.getElementById('sticky-mic');
+  var st  = document.getElementById('sticky-mic-status');
+  if (btn) btn.classList.toggle('listening', on);
+  if (st)  st.textContent = on ? '🔴 Listening — speak now' : 'Click mic to dictate';
+}
+
+/* ─── GLOBAL SPEECH-TO-TEXT (for text areas in Written Practice) ─── */
+var globalMicRecogniser  = null;
+var globalMicTargetId    = null;
+var globalMicBaseText    = '';
+var globalMicActive      = false;
+
+function startFieldMic(targetId) {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Speech recognition requires Chrome or Edge browser.'); return;
+  }
+  if (globalMicActive && globalMicTargetId === targetId) {
+    stopGlobalMic(); return;
+  }
+  if (globalMicActive) stopGlobalMic();
+
+  globalMicTargetId = targetId;
+  var ta = document.getElementById(targetId);
+  globalMicBaseText = ta ? ta.value : '';
+
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  globalMicRecogniser = new SR();
+  globalMicRecogniser.lang = 'en-GB';
+  globalMicRecogniser.continuous = true;
+  globalMicRecogniser.interimResults = true;
+
+  globalMicRecogniser.onstart = function() {
+    globalMicActive = true;
+    showSttToast('🔴 Listening — speak your answer…');
+    var btn = document.getElementById('micbtn-' + targetId);
+    if (btn) btn.classList.add('listening');
+  };
+  globalMicRecogniser.onend = function() {
+    globalMicActive = false;
+    hideSttToast();
+    var btn = document.getElementById('micbtn-' + targetId);
+    if (btn) btn.classList.remove('listening');
+  };
+  globalMicRecogniser.onerror = function(e) {
+    globalMicActive = false;
+    hideSttToast();
+    var btn = document.getElementById('micbtn-' + targetId);
+    if (btn) btn.classList.remove('listening');
+    if (e.error !== 'no-speech') showSttToast('Error: ' + e.error, 2000);
+  };
+  globalMicRecogniser.onresult = function(e) {
+    var interim = '', final = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    globalMicBaseText += final;
+    var ta2 = document.getElementById(globalMicTargetId);
+    if (ta2) ta2.value = globalMicBaseText + interim;
+  };
+  globalMicRecogniser.start();
+}
+
+function stopGlobalMic() {
+  if (globalMicRecogniser) try { globalMicRecogniser.stop(); } catch(e) {}
+  globalMicActive = false;
+  hideSttToast();
+  if (globalMicTargetId) {
+    var btn = document.getElementById('micbtn-' + globalMicTargetId);
+    if (btn) btn.classList.remove('listening');
+  }
+}
+function showSttToast(msg, autohide) {
+  var t = document.getElementById('stt-toast');
+  var s = document.getElementById('stt-toast-text');
+  if (t) t.style.display = 'flex';
+  if (s) s.textContent = msg;
+  if (autohide) setTimeout(hideSttToast, autohide);
+}
+function hideSttToast() {
+  var t = document.getElementById('stt-toast');
+  if (t) t.style.display = 'none';
+}
+
+/* ─── LESSON TIMER ─── */
+var ltwTimer      = null;
+var ltwPaused     = true;
+var ltwSecondsLeft = 0;
+var ltwTotalSecs  = 0;
+var ltwActivities = [];
+var ltwCurrent    = 0;
+var ltwActSecs    = 0;
+var ltwActTotal   = 0;
+
+function openLessonTimer(lessonIndex) {
+  var S = SUBJECTS[currentSubject];
+  var l = S.lessons[lessonIndex];
+  if (!l || !l.activities || l.activities.length === 0) return;
+
+  /* Parse activities into timed segments */
+  ltwActivities = l.activities.map(function(a) {
+    var mins = 5; /* default */
+    var m = a.time.match(/(\d+)-(\d+)/);
+    if (m) mins = parseInt(m[2]) - parseInt(m[1]);
+    return { label: a.time, desc: a.desc, secs: Math.max(mins, 1) * 60 };
+  });
+
+  ltwCurrent = 0;
+  ltwPaused  = true;
+  setLtwActivity(0);
+  buildLtwDots();
+
+  document.getElementById('lesson-timer-widget').style.display = 'block';
+  updateLtwPlayBtn();
+}
+
+function setLtwActivity(idx) {
+  if (idx < 0 || idx >= ltwActivities.length) return;
+  ltwCurrent = idx;
+  var act = ltwActivities[idx];
+  ltwActTotal   = act.secs;
+  ltwActSecs    = act.secs;
+  setEl('ltw-activity-label', act.label);
+  setEl('ltw-activity-desc', act.desc.substring(0, 120) + (act.desc.length > 120 ? '…' : ''));
+  updateLtwDisplay();
+  buildLtwDots();
+  if (!ltwPaused) {
+    clearInterval(ltwTimer);
+    ltwTimer = setInterval(ltwTick, 1000);
+  }
+}
+
+function ltwTick() {
+  if (ltwPaused) return;
+  ltwActSecs--;
+  updateLtwDisplay();
+  if (ltwActSecs <= 0) {
+    if (ltwCurrent < ltwActivities.length - 1) {
+      clearInterval(ltwTimer);
+      /* Brief flash before next */
+      document.getElementById('ltw-clock').classList.add('danger');
+      setTimeout(function() {
+        document.getElementById('ltw-clock').classList.remove('danger');
+        setLtwActivity(ltwCurrent + 1);
+        if (!ltwPaused) ltwTimer = setInterval(ltwTick, 1000);
+      }, 800);
+    } else {
+      clearInterval(ltwTimer);
+      ltwPaused = true;
+      setEl('ltw-activity-label', 'Lesson complete!');
+      setEl('ltw-activity-desc', '🎉 All activities done. Well done!');
+      updateLtwPlayBtn();
+    }
+  }
+}
+
+function updateLtwDisplay() {
+  var m = Math.floor(ltwActSecs / 60);
+  var s = ltwActSecs % 60;
+  var str = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  var el   = document.getElementById('ltw-clock');
+  var fill = document.getElementById('ltw-bar-fill');
+  if (el) {
+    el.textContent = str;
+    el.className = 'ltw-clock';
+    if (ltwActSecs <= 60)  el.classList.add('danger');
+    else if (ltwActSecs <= 120) el.classList.add('warn');
+  }
+  if (fill && ltwActTotal > 0) {
+    var pct = (ltwActSecs / ltwActTotal) * 100;
+    fill.style.width = pct + '%';
+    fill.className = 'ltw-bar-fill';
+    if (ltwActSecs <= 60)       fill.classList.add('danger');
+    else if (ltwActSecs <= 120) fill.classList.add('warn');
+  }
+}
+
+function buildLtwDots() {
+  var html = ltwActivities.map(function(a, i) {
+    var cls = i < ltwCurrent ? 'ltw-dot done' : i === ltwCurrent ? 'ltw-dot active' : 'ltw-dot';
+    return '<div class="' + cls + '" onclick="ltwJump(' + i + ')" title="' + a.label + '"></div>';
+  }).join('');
+  setEl('ltw-dots', html);
+}
+
+function ltwToggle() {
+  ltwPaused = !ltwPaused;
+  if (!ltwPaused) {
+    ltwTimer = setInterval(ltwTick, 1000);
+  } else {
+    clearInterval(ltwTimer);
+  }
+  updateLtwPlayBtn();
+}
+function updateLtwPlayBtn() {
+  var btn = document.getElementById('ltw-play-btn');
+  if (btn) btn.innerHTML = ltwPaused ? '<i class="ti ti-player-play"></i>' : '<i class="ti ti-player-pause"></i>';
+}
+function ltwNext() {
+  clearInterval(ltwTimer);
+  if (ltwCurrent < ltwActivities.length - 1) {
+    setLtwActivity(ltwCurrent + 1);
+    if (!ltwPaused) ltwTimer = setInterval(ltwTick, 1000);
+  }
+}
+function ltwPrev() {
+  clearInterval(ltwTimer);
+  if (ltwCurrent > 0) {
+    setLtwActivity(ltwCurrent - 1);
+    if (!ltwPaused) ltwTimer = setInterval(ltwTick, 1000);
+  }
+}
+function ltwJump(idx) {
+  clearInterval(ltwTimer);
+  setLtwActivity(idx);
+  if (!ltwPaused) ltwTimer = setInterval(ltwTick, 1000);
+}
+function ltwRestart() {
+  clearInterval(ltwTimer);
+  setLtwActivity(ltwCurrent);
+  if (!ltwPaused) ltwTimer = setInterval(ltwTick, 1000);
+}
+function closeLessonTimer() {
+  clearInterval(ltwTimer);
+  ltwPaused = true;
+  document.getElementById('lesson-timer-widget').style.display = 'none';
+}
+
+/* ─── PRINT LESSON ─── */
+var printLessonIndex = -1;
+
+function openPrintLesson(idx) {
+  printLessonIndex = idx;
+  var S = SUBJECTS[currentSubject];
+  var l = S.lessons[idx];
+  if (!l) return;
+
+  var today = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+  var html = '<div class="print-lesson-view">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--acc);margin-bottom:3px">Oak Hill School — ' + S.name + ' GCSE — ' + SUBJECTS[currentSubject].boards[currentBoard].name + '</div>' +
+        '<h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Lesson ' + l.num + ': ' + l.title + '</h2>' +
+        '<div class="plv-meta" style="display:flex;gap:12px;flex-wrap:wrap;color:var(--text2);font-size:13px">' +
+          '<span><strong>Duration:</strong> ' + l.duration + '</span>' +
+          '<span><strong>Topic:</strong> ' + l.topic + '</span>' +
+          '<span><strong>AO:</strong> ' + l.ao + '</span>' +
+          '<span><strong>Level:</strong> ' + l.level + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text3)">' + today + '</div>' +
+    '</div>';
+
+  html += '<div style="background:var(--surface2);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:13.5px;color:var(--text2)"><strong>Objective:</strong> ' + l.objective + '</div>';
+
+  if (l.sen) {
+    html += '<div style="background:#EEF6FF;border:1px solid #5B9BD5;border-left:4px solid #185FA5;border-radius:6px;padding:10px 14px;margin-bottom:1rem;font-size:13px;color:#042C53">' +
+      '<strong style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#185FA5;margin-bottom:4px">SEN Adaptations</strong>' + l.sen + '</div>';
+  }
+
+  html += '<div style="margin-bottom:1rem"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:.5rem">Lesson Activities</div>';
+  l.activities.forEach(function(a) {
+    html += '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">' +
+      '<span style="font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap;flex-shrink:0;width:80px">' + a.time + '</span>' +
+      '<span style="font-size:13px;color:var(--text2);line-height:1.55">' + a.desc + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  if (l.resources && l.resources.length) {
+    html += '<div style="margin-bottom:1rem"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:.5rem">Resources Needed</div>' +
+      '<ul style="padding-left:1.25rem;margin:0">' +
+      l.resources.map(function(r){ return '<li style="font-size:13px;color:var(--text2);margin-bottom:3px">' + r + '</li>'; }).join('') +
+      '</ul></div>';
+  }
+
+  if (l.homework) {
+    html += '<div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:6px;padding:.75rem 1rem;font-size:13px;color:var(--amber-d)">' +
+      '<strong>Homework:</strong> ' + l.homework + '</div>';
+  }
+
+  html += '</div>';
+
+  setEl('print-lesson-content', html);
+  document.getElementById('print-lesson-modal').style.display = 'flex';
+}
+
+function closePrintLesson() {
+  document.getElementById('print-lesson-modal').style.display = 'none';
+}
+
+function doPrintLesson() {
+  var content = document.getElementById('print-lesson-content').innerHTML;
+  var win = window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>Lesson Plan — Oak Hill</title>' +
+    '<style>*{box-sizing:border-box;margin:0;padding:0}' +
+    'body{font-family:system-ui,-apple-system,sans-serif;padding:2rem;color:#111;max-width:800px;margin:0 auto}' +
+    'strong{font-weight:600}' +
+    '@media print{body{padding:1rem}}' +
+    '</style></head><body>' + content + '</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 300);
+}
+
+/* ─── DIFFERENTIATION LEVELS ─── */
+/* Assign levels to questions in data */
+var diffLevels = { foundation: 'f', core: 'c', extension: 'e' };
+var currentDiffFilter = 'all';
+
+function getDiffLevel(q) {
+  /* Assign based on marks or topic complexity */
+  if (q.marks) {
+    if (q.marks <= 2) return 'f';
+    if (q.marks <= 8) return 'c';
+    return 'e';
+  }
+  /* For quiz questions — rotate through based on index */
+  return 'c';
+}
+
+function buildDiffBar(containerId, onchange) {
+  var html = '<div class="diff-filter-bar">' +
+    '<label><i class="ti ti-adjustments" style="font-size:13px"></i> Level:</label>' +
+    ['all','f','c','e'].map(function(v) {
+      var labels = { all:'All', f:'Foundation', c:'Core', e:'Extension' };
+      var cls    = 'diff-pill' + (currentDiffFilter === v ? ' active-' + v : '');
+      return '<button class="' + cls + '" onclick="setDiffFilter(\'' + v + '\',\'' + containerId + '\')">' + labels[v] + '</button>';
+    }).join('') +
+    '</div>';
+  return html;
+}
+
+function setDiffFilter(val, panel) {
+  currentDiffFilter = val;
+  if (panel === 'quiz')    { filterQuiz(); }
+  if (panel === 'written') { filterWritten(); }
+}
+
+/* ─── PATCH renderWritten to add mic buttons and diff filter ─── */
+var _origRenderWritten = renderWritten;
+renderWritten = function() {
+  var S  = SUBJECTS[currentSubject];
+  var qs = S.writtenQuestions || [];
+  if (qs.length === 0) {
+    setEl('written-area','<p style="color:var(--text2);padding:1rem">Written questions coming soon.</p>'); return;
+  }
+  var mf = currentWrittenFilter;
+  var tf = currentWrittenTopicFilter;
+  var filtered = qs.filter(function(q) {
+    var markOk  = (mf === 'all' || String(q.marks) === mf);
+    var topicOk = (tf === 'all' || q.topic === tf);
+    var diffOk  = (currentDiffFilter === 'all' || getDiffLevel(q) === currentDiffFilter);
+    return markOk && topicOk && diffOk;
+  });
+
+  /* Prepend diff bar */
+  var diffBar = buildDiffBar('written', 'written');
+
+  if (filtered.length === 0) {
+    setEl('written-area', diffBar + '<p style="color:var(--text2);padding:1rem">No questions match.</p>'); return;
+  }
+
+  var html = diffBar + filtered.map(function(q, i) {
+    var key  = 'w_' + i + '_' + currentSubject;
+    var dlvl = getDiffLevel(q);
+    var dmap = { f:'Foundation', c:'Core', e:'Extension' };
+    var dclr = { f:'ctag-g', c:'ctag-b', e:'ctag-p' };
+    return '<div class="written-question">' +
+      '<div class="written-q-header">' +
+        '<span class="marks-badge">[' + q.marks + ' marks]</span>' +
+        '<span class="ctag ctag-b">' + q.topic + '</span>' +
+        '<span class="ctag ' + dclr[dlvl] + '">' + dmap[dlvl] + '</span>' +
+      '</div>' +
+      '<h4>' + q.question + '</h4>' +
+      '<div class="stt-field-wrap">' +
+        '<textarea class="student-answer-area" placeholder="Write or dictate your answer…" rows="6" id="ans-' + key + '"></textarea>' +
+        '<button class="stt-field-btn" id="micbtn-ans-' + key + '" onclick="startFieldMic(\'ans-' + key + '\')" title="Dictate answer"><i class="ti ti-microphone"></i></button>' +
+      '</div>' +
+      '<div class="btn-row">' +
+        '<button class="btn-sm btn-accent" onclick="toggleMS(\'' + key + '\')"><i class="ti ti-eye"></i> Mark scheme</button>' +
+        '<button class="btn-sm" onclick="toggleMA(\'' + key + '\')"><i class="ti ti-file-text"></i> Model answer</button>' +
+        '<button class="btn-sm" onclick="clearWritten(\'' + key + '\')"><i class="ti ti-trash"></i> Clear</button>' +
+      '</div>' +
+      '<div class="mark-scheme" id="ms-' + key + '"><h5><i class="ti ti-check"></i> Mark scheme</h5><p>' + (q.markScheme||'').replace(/\n/g,'<br>') + '</p></div>' +
+      '<div class="model-answer" id="ma-' + key + '"><h5><i class="ti ti-file-text"></i> Model answer</h5><p>' + (q.modelAnswer||'').replace(/\n/g,'<br><br>') + '</p></div>' +
+      '</div>';
+  }).join('');
+  setEl('written-area', html);
+};
+
+/* ─── PATCH openLessonDetail to add Timer + Print buttons ─── */
+var _origOpenLessonDetail = openLessonDetail;
+openLessonDetail = function(i) {
+  _origOpenLessonDetail(i);
+  /* Append action buttons to back-btn row */
+  var backBtn = document.querySelector('.lesson-detail .back-btn');
+  if (backBtn && backBtn.parentNode) {
+    /* Add timer and print buttons after the back button */
+    var timerBtn = document.createElement('button');
+    timerBtn.className = 'print-lesson-btn';
+    timerBtn.innerHTML = '<i class="ti ti-clock"></i> Start timer';
+    timerBtn.onclick = function(){ openLessonTimer(i); };
+
+    var printBtn = document.createElement('button');
+    printBtn.className = 'print-lesson-btn';
+    printBtn.innerHTML = '<i class="ti ti-printer"></i> Print plan';
+    printBtn.onclick = function(){ openPrintLesson(i); };
+
+    backBtn.parentNode.appendChild(timerBtn);
+    backBtn.parentNode.appendChild(printBtn);
+  }
+};
+
+/* ─── INIT NEW FEATURES ─── */
+(function initNewFeatures() {
+  /* Load sticky note */
+  try {
+    var saved = localStorage.getItem('oakhill_sticky');
+    if (saved) { /* loaded when panel opens */ }
+  } catch(e) {}
+  /* Start countdown if saved */
+  startCountdownTick();
+})();

@@ -1918,3 +1918,428 @@ body {
   .help-feature-row { grid-template-columns: 1fr; gap: .25rem; }
   .help-lesson-table td:nth-child(2) { width: auto; }
 }
+
+/* ═══════════════════════════════════════
+   NEW FEATURES — v5
+═══════════════════════════════════════ */
+
+/* ─── EXAM COUNTDOWN ─── */
+.exam-countdown {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.exam-countdown:hover { border-color: var(--acc); color: var(--acc); }
+.exam-countdown i { font-size: 14px; color: var(--acc); }
+.exam-countdown.urgent { background: var(--red-l); border-color: var(--red); color: var(--red-d); }
+.exam-countdown.urgent i { color: var(--red); }
+.exam-countdown.soon { background: var(--amber-l); border-color: var(--amber); color: var(--amber-d); }
+.exam-countdown.soon i { color: var(--amber); }
+
+/* ─── HEADER ICON BUTTON ─── */
+.header-icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.header-icon-btn:hover { border-color: var(--acc); color: var(--acc); }
+.header-icon-btn.active { background: var(--amber-l); border-color: var(--amber); color: var(--amber-d); }
+
+/* ─── LESSON TIMER WIDGET ─── */
+.lesson-timer-widget {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 280px;
+  background: #0D1117;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.5);
+  z-index: 500;
+  overflow: hidden;
+  color: #fff;
+}
+.ltw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .75rem 1rem .5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ltw-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: rgba(255,255,255,0.5);
+}
+.ltw-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+.ltw-close:hover { color: #fff; }
+.ltw-clock {
+  font-family: var(--font-display);
+  font-size: 52px;
+  letter-spacing: 3px;
+  text-align: center;
+  color: #fff;
+  padding: .5rem 1rem .25rem;
+  line-height: 1;
+  transition: color .3s;
+}
+.ltw-clock.warn { color: #F5A623; }
+.ltw-clock.danger { color: #E55353; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.ltw-bar-track {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 1rem;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ltw-bar-fill {
+  height: 100%;
+  background: var(--acc);
+  border-radius: 2px;
+  transition: width 1s linear, background .3s;
+}
+.ltw-bar-fill.warn { background: #F5A623; }
+.ltw-bar-fill.danger { background: #E55353; }
+.ltw-activity-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  padding: .5rem 1rem;
+  line-height: 1.5;
+  min-height: 44px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ltw-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: .75rem 1rem;
+}
+.ltw-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all .1s;
+}
+.ltw-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.ltw-btn.ltw-play {
+  width: 46px; height: 46px;
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+  font-size: 18px;
+}
+.ltw-btn.ltw-play:hover { opacity: .9; }
+.ltw-btn.ltw-restart { background: rgba(255,255,255,0.05); }
+.ltw-progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 1rem .75rem;
+}
+.ltw-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: all .15s;
+}
+.ltw-dot.done { background: var(--acc); }
+.ltw-dot.active { background: #fff; transform: scale(1.2); }
+
+/* Diff level badge on lesson plan button */
+.diff-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.diff-f { background: var(--green-l); color: var(--green-d); }
+.diff-c { background: var(--blue-l); color: var(--blue-d); }
+.diff-e { background: var(--purple-l); color: var(--purple-d); }
+
+/* Print lesson button inside lesson detail */
+.print-lesson-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  margin-left: .5rem;
+  transition: all .15s;
+}
+.print-lesson-btn:hover { border-color: var(--acc); color: var(--acc); }
+
+/* ─── STICKY NOTES PANEL ─── */
+.sticky-panel {
+  position: fixed;
+  top: 152px;
+  right: 1rem;
+  width: 300px;
+  background: #FFFDE7;
+  border: 1px solid #F9C74F;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 180px);
+}
+@media (prefers-color-scheme: dark) {
+  .sticky-panel { background: #2A2510; border-color: #6B5500; }
+  .sticky-textarea { background: #2A2510; color: #F5E9A0; }
+}
+.sticky-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+.sticky-mic-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: .5rem 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  flex-shrink: 0;
+}
+.mic-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid #F9C74F;
+  background: #FFF9C4;
+  color: #7B6000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.mic-btn:hover { background: #F9C74F; }
+.mic-btn.listening {
+  background: #E55353;
+  border-color: #E55353;
+  color: #fff;
+  animation: pulse 1s infinite;
+}
+.mic-status {
+  font-size: 11px;
+  color: #7B6000;
+  font-weight: 500;
+}
+@media (prefers-color-scheme: dark) {
+  .mic-status { color: #D4A900; }
+}
+.sticky-textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.7;
+  color: #3D3000;
+  padding: .75rem 1rem;
+  resize: none;
+  min-height: 200px;
+  outline: none;
+}
+.sticky-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: .5rem .75rem;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  flex-shrink: 0;
+}
+.sticky-footer .btn-sm { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: #5A4500; }
+
+/* ─── MODAL ─── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+.modal-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+.modal-input:focus { outline: none; border-color: var(--acc); }
+
+/* ─── STT TOAST ─── */
+.stt-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A1C22;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 100px;
+  padding: .6rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 600;
+  white-space: nowrap;
+}
+
+/* ─── MIC BUTTON (inline in text areas) ─── */
+.stt-field-wrap {
+  position: relative;
+}
+.stt-field-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all .15s;
+  z-index: 2;
+}
+.stt-field-btn:hover { border-color: var(--acc); color: var(--acc); }
+.stt-field-btn.listening { background: #E55353; border-color: #E55353; color: #fff; animation: pulse 1s infinite; }
+
+/* ─── DIFFERENTIATION FILTER ─── */
+.diff-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.diff-filter-bar label { font-size: 12px; font-weight: 600; color: var(--text3); }
+.diff-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .1s;
+  color: var(--text2);
+}
+.diff-pill:hover { border-color: var(--border2); }
+.diff-pill.active-f { background: var(--green-l); border-color: var(--green); color: var(--green-d); }
+.diff-pill.active-c { background: var(--blue-l); border-color: var(--blue); color: var(--blue-d); }
+.diff-pill.active-e { background: var(--purple-l); border-color: var(--purple); color: var(--purple-d); }
+.diff-pill.active-all { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+/* ─── PRINT LESSON ─── */
+@media print {
+  .lesson-timer-widget, .sticky-panel, .modal-backdrop,
+  .stt-toast, .subj-bar, .header, .tab-bar { display: none !important; }
+  .print-lesson-view { display: block !important; }
+}
+.print-lesson-view { font-family: var(--font-sans); color: #000; }
+.print-lesson-view h2 { font-size: 20px; font-weight: 700; margin-bottom: .5rem; }
+.print-lesson-view .plv-meta { font-size: 12px; color: #555; margin-bottom: 1rem; }
+.print-lesson-view .plv-sen {
+  background: #EEF6FF;
+  border: 1px solid #5B9BD5;
+  border-left: 4px solid #185FA5;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #042C53;
+  margin-bottom: 1rem;
+}
+.print-lesson-view .plv-section { margin-bottom: 1rem; }
+.print-lesson-view .plv-section h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #666; margin-bottom: .4rem; border-bottom: 1px solid #ddd; padding-bottom: 3px; }
+.print-lesson-view .plv-activity { display: flex; gap: 10px; font-size: 13px; margin-bottom: 6px; }
+.print-lesson-view .plv-time { font-weight: 700; color: #185FA5; white-space: nowrap; flex-shrink: 0; }
+.print-lesson-view .plv-footer { font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 6px; margin-top: 1rem; display: flex; justify-content: space-between; }
