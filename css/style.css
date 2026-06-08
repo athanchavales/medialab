@@ -7,7 +7,8 @@
 
 /* ─── CSS VARIABLES ─── */
 :root {
-  --green:#1D9E75; --green-l:#E1F5EE; --green-d:#085041; --green-m:#0F6E56;
+  /* ── Oak Hill Media Lab brand green extracted from logo ── */
+  --green:#115d41; --green-l:#E0EFE9; --green-d:#062B1D; --green-m:#0D4A32;
   --amber:#BA7517; --amber-l:#FAEEDA; --amber-d:#412402;
   --purple:#534AB7; --purple-l:#EEEDFE; --purple-d:#26215C;
   --red:#A32D2D; --red-l:#FCEBEB; --red-d:#501313;
@@ -75,7 +76,7 @@ body {
 
 /* ─── SUBJECT BAR ─── */
 .subj-bar {
-  background: #12141A;
+  background: #062B1D;
   display: flex;
   align-items: center;
   padding: 0 1.5rem;
@@ -85,6 +86,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 200;
+  border-bottom: 1px solid rgba(17,93,65,0.4);
 }
 .subj-bar::-webkit-scrollbar { display: none; }
 .subj-label {
@@ -155,29 +157,35 @@ body {
   box-shadow: var(--shadow-sm);
 }
 .logo {
-  font-family: var(--font-display);
-  font-size: 28px;
-  letter-spacing: 2.5px;
-  color: var(--acc);
-  line-height: 1;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--acc);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
+  text-decoration: none;
 }
-.logo-icon i { font-size: 20px; color: #fff; }
-.logo-text { display: flex; flex-direction: column; }
-.logo-name { font-family: var(--font-display); font-size: 24px; letter-spacing: 2px; color: var(--acc); line-height: 1; }
+.logo-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #0a0f0a;
+  padding: 2px;
+  flex-shrink: 0;
+  transition: transform .2s;
+}
+.logo-img:hover { transform: rotate(8deg) scale(1.05); }
+.logo-icon { display: none; } /* hide old icon fallback */
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+.logo-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--acc);
+  line-height: 1;
+}
 .logo small {
   display: block;
   font-family: var(--font-sans);
@@ -1496,7 +1504,7 @@ body {
 .classroom-overlay {
   position: fixed;
   inset: 0;
-  background: #0A0B0F;
+  background: #041a10;
   z-index: 9999;
   display: grid;
   grid-template-rows: 64px 1fr 60px;
@@ -1506,15 +1514,26 @@ body {
   display: flex;
   align-items: center;
   padding: 0 2rem;
-  background: rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(17,93,65,0.3);
+  border-bottom: 1px solid rgba(17,93,65,0.5);
   gap: 1rem;
 }
 .classroom-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: 2px;
-  color: var(--acc);
+  color: #fff;
+}
+.classroom-logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  padding: 2px;
 }
 .classroom-board {
   font-size: 12px;

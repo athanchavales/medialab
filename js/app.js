@@ -65,14 +65,9 @@ function setSubject(id, btn) {
   document.documentElement.style.setProperty('--acc-l', c[1]);
   document.documentElement.style.setProperty('--acc-d', c[2]);
 
-  /* header logo */
-  var logoIcons = { media:'ti-device-tv', photo:'ti-camera', graphic:'ti-vector-bezier' };
-  var logoSubEl  = document.getElementById('logo-sub');
-  var logoIconEl = document.getElementById('logo-icon');
-  var logoIconI  = document.getElementById('logo-icon-i');
-  if (logoSubEl)  logoSubEl.textContent  = 'Media Lab — ' + S.name;
-  if (logoIconEl) logoIconEl.style.background = c[0];
-  if (logoIconI)  logoIconI.className = 'ti ' + (logoIcons[id] || 'ti-device-tv');
+  /* header logo subtitle updates with subject */
+  var logoSubEl = document.getElementById('logo-sub');
+  if (logoSubEl) logoSubEl.textContent = 'Media Lab — ' + S.name;
 
   /* subject bar active state */
   document.querySelectorAll('.subj-btn').forEach(function(b){ b.classList.remove('active'); });
