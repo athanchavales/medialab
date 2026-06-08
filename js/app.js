@@ -20,10 +20,11 @@ var quizScore      = 0;
 var quizTotal      = 0;
 var glossCat       = 'all';
 var progress       = {};
-var currentGlossFilter = 'all';
-var currentWrittenFilter = 'all';
+var currentGlossFilter      = 'all';
+var currentWrittenFilter    = 'all';
 var currentWrittenTopicFilter = 'all';
-var currentQuizFilter = 'all';
+var currentQuizFilter       = 'all';
+var currentDiffFilter       = 'all';   /* differentiation level filter — must be here, not in features section */
 
 /* ─── INIT ─── */
 (function init() {
@@ -397,7 +398,7 @@ function renderWritten() {
   }
   var mf = currentWrittenFilter;
   var tf = currentWrittenTopicFilter;
-  var df = (typeof currentDiffFilter !== 'undefined') ? currentDiffFilter : 'all';
+  var df = currentDiffFilter;
 
   var filtered = qs.filter(function(q){
     var markOk  = (mf === 'all' || String(q.marks) === mf);
@@ -406,12 +407,18 @@ function renderWritten() {
     return markOk && topicOk && diffOk;
   });
 
-  /* Differentiation filter bar */
+  /* Differentiation filter bar — active class reflects current df value */
+  var pillDefs = [
+    { val:'all', label:'All' },
+    { val:'f',   label:'Foundation' },
+    { val:'c',   label:'Core' },
+    { val:'e',   label:'Extension' }
+  ];
   var diffBar = '<div class="diff-filter-bar">' +
     '<label><i class="ti ti-adjustments" style="font-size:13px"></i> Level:</label>' +
-    [['all','All','diff-pill active-all'],['f','Foundation','diff-pill'],['c','Core','diff-pill'],['e','Extension','diff-pill']].map(function(v){
-      var cls = 'diff-pill' + (df === v[0] ? ' active-' + v[0] : '');
-      return '<button class="' + cls + '" onclick="setDiffFilterSafe(\'' + v[0] + '\')">' + v[1] + '</button>';
+    pillDefs.map(function(p){
+      var active = (df === p.val) ? ' active-' + p.val : '';
+      return '<button class="diff-pill' + active + '" onclick="setDiffFilterSafe(\'' + p.val + '\')">' + p.label + '</button>';
     }).join('') +
     '</div>';
 
@@ -459,7 +466,6 @@ function renderWritten() {
   setEl('written-area', html);
 }
 
-/* Safe wrappers — called from HTML before feature JS loads */
 function getDiffLevelSafe(q) {
   if (typeof getDiffLevel === 'function') return getDiffLevel(q);
   if (q.marks <= 2) return 'f';
@@ -467,7 +473,7 @@ function getDiffLevelSafe(q) {
   return 'e';
 }
 function setDiffFilterSafe(val) {
-  if (typeof currentDiffFilter !== 'undefined') currentDiffFilter = val;
+  currentDiffFilter = val;  /* directly assign the global — no typeof guard needed */
   renderWritten();
 }
 function startFieldMicSafe(targetId) {
@@ -2138,9 +2144,7 @@ function doPrintLesson() {
 }
 
 /* ─── DIFFERENTIATION LEVELS ─── */
-/* Assign levels to questions in data */
-var diffLevels = { foundation: 'f', core: 'c', extension: 'e' };
-var currentDiffFilter = 'all';
+/* getDiffLevel used by getDiffLevelSafe above */
 
 function getDiffLevel(q) {
   /* Assign based on marks or topic complexity */
