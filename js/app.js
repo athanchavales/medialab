@@ -1779,7 +1779,7 @@ var globalMicActive      = false;
 
 function startFieldMic(targetId) {
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    alert('Speech recognition requires Chrome or Edge browser.'); return;
+    alert('Speech recognition requires Chrome or Edge browser.\n\nIn Chrome/Edge: make sure microphone access is allowed for this page.'); return;
   }
   if (globalMicActive && globalMicTargetId === targetId) {
     stopGlobalMic(); return;
@@ -1799,21 +1799,31 @@ function startFieldMic(targetId) {
   globalMicRecogniser.onstart = function() {
     globalMicActive = true;
     showSttToast('🔴 Listening — speak your answer…');
-    var btn = document.getElementById('micbtn-' + targetId);
-    if (btn) btn.classList.add('listening');
+    var btn  = document.getElementById('micbtn-' + targetId);
+    var wrap = btn ? btn.closest('.stt-field-wrap') : null;
+    if (btn)  btn.classList.add('listening');
+    if (wrap) wrap.classList.add('listening');
   };
   globalMicRecogniser.onend = function() {
     globalMicActive = false;
     hideSttToast();
-    var btn = document.getElementById('micbtn-' + targetId);
-    if (btn) btn.classList.remove('listening');
+    var btn  = document.getElementById('micbtn-' + targetId);
+    var wrap = btn ? btn.closest('.stt-field-wrap') : null;
+    if (btn)  btn.classList.remove('listening');
+    if (wrap) wrap.classList.remove('listening');
   };
   globalMicRecogniser.onerror = function(e) {
     globalMicActive = false;
     hideSttToast();
-    var btn = document.getElementById('micbtn-' + targetId);
-    if (btn) btn.classList.remove('listening');
-    if (e.error !== 'no-speech') showSttToast('Error: ' + e.error, 2000);
+    var btn  = document.getElementById('micbtn-' + targetId);
+    var wrap = btn ? btn.closest('.stt-field-wrap') : null;
+    if (btn)  btn.classList.remove('listening');
+    if (wrap) wrap.classList.remove('listening');
+    if (e.error === 'not-allowed') {
+      showSttToast('Microphone blocked — allow access in browser settings', 3000);
+    } else if (e.error !== 'no-speech') {
+      showSttToast('Error: ' + e.error, 2500);
+    }
   };
   globalMicRecogniser.onresult = function(e) {
     var interim = '', final = '';
@@ -2120,7 +2130,6 @@ renderWritten = function() {
     return markOk && topicOk && diffOk;
   });
 
-  /* Prepend diff bar */
   var diffBar = buildDiffBar('written', 'written');
 
   if (filtered.length === 0) {
@@ -2132,16 +2141,21 @@ renderWritten = function() {
     var dlvl = getDiffLevel(q);
     var dmap = { f:'Foundation', c:'Core', e:'Extension' };
     var dclr = { f:'ctag-g', c:'ctag-b', e:'ctag-p' };
+    /* mic button ID matches what startFieldMic looks for: 'micbtn-' + targetId */
+    var taId  = 'ans-' + key;
+    var micId = 'micbtn-' + taId;
     return '<div class="written-question">' +
       '<div class="written-q-header">' +
         '<span class="marks-badge">[' + q.marks + ' marks]</span>' +
         '<span class="ctag ctag-b">' + q.topic + '</span>' +
-        '<span class="ctag ' + dclr[dlvl] + '">' + dmap[dlvl] + '</span>' +
+        '<span class="ctag ' + dclr[dlvl] + ' diff-badge">' + dmap[dlvl] + '</span>' +
       '</div>' +
       '<h4>' + q.question + '</h4>' +
       '<div class="stt-field-wrap">' +
-        '<textarea class="student-answer-area" placeholder="Write or dictate your answer…" rows="6" id="ans-' + key + '"></textarea>' +
-        '<button class="stt-field-btn" id="micbtn-ans-' + key + '" onclick="startFieldMic(\'ans-' + key + '\')" title="Dictate answer"><i class="ti ti-microphone"></i></button>' +
+        '<textarea class="student-answer-area" placeholder="Write or speak your answer — tap the mic 🎤 to dictate…" rows="6" id="' + taId + '" style="padding-bottom:2.5rem"></textarea>' +
+        '<button class="stt-field-btn" id="' + micId + '" onclick="startFieldMic(\'' + taId + '\')" title="Tap to dictate your answer">' +
+          '<i class="ti ti-microphone"></i>' +
+        '</button>' +
       '</div>' +
       '<div class="btn-row">' +
         '<button class="btn-sm btn-accent" onclick="toggleMS(\'' + key + '\')"><i class="ti ti-eye"></i> Mark scheme</button>' +
