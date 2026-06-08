@@ -380,24 +380,49 @@ function renderWritten() {
   }
   var mf = currentWrittenFilter;
   var tf = currentWrittenTopicFilter;
+  var df = (typeof currentDiffFilter !== 'undefined') ? currentDiffFilter : 'all';
+
   var filtered = qs.filter(function(q){
     var markOk  = (mf === 'all' || String(q.marks) === mf);
     var topicOk = (tf === 'all' || q.topic === tf);
-    return markOk && topicOk;
+    var diffOk  = (df === 'all' || getDiffLevelSafe(q) === df);
+    return markOk && topicOk && diffOk;
   });
+
+  /* Differentiation filter bar */
+  var diffBar = '<div class="diff-filter-bar">' +
+    '<label><i class="ti ti-adjustments" style="font-size:13px"></i> Level:</label>' +
+    [['all','All','diff-pill active-all'],['f','Foundation','diff-pill'],['c','Core','diff-pill'],['e','Extension','diff-pill']].map(function(v){
+      var cls = 'diff-pill' + (df === v[0] ? ' active-' + v[0] : '');
+      return '<button class="' + cls + '" onclick="setDiffFilterSafe(\'' + v[0] + '\')">' + v[1] + '</button>';
+    }).join('') +
+    '</div>';
+
   if (filtered.length === 0) {
-    setEl('written-area','<p style="color:var(--text2);padding:1rem">No questions match the selected filters.</p>');
+    setEl('written-area', diffBar + '<p style="color:var(--text2);padding:1rem">No questions match the selected filters.</p>');
     return;
   }
-  var html = filtered.map(function(q, i){
-    var key = 'w_' + i + '_' + currentSubject;
+
+  var dmap = { f:'Foundation', c:'Core', e:'Extension' };
+  var dclr = { f:'ctag-g',    c:'ctag-b', e:'ctag-p'  };
+
+  var html = diffBar + filtered.map(function(q, i){
+    var key  = 'w_' + i + '_' + currentSubject;
+    var taId = 'ans-' + key;
+    var dlvl = getDiffLevelSafe(q);
     return '<div class="written-question">' +
       '<div class="written-q-header">' +
         '<span class="marks-badge">[' + q.marks + ' marks]</span>' +
         '<span class="ctag ctag-b">' + q.topic + '</span>' +
+        '<span class="ctag ' + dclr[dlvl] + ' diff-badge">' + dmap[dlvl] + '</span>' +
       '</div>' +
       '<h4>' + q.question + '</h4>' +
-      '<textarea class="student-answer-area" placeholder="Write your answer here… Use specific evidence from your set texts." rows="6" id="ans-' + key + '"></textarea>' +
+      '<div class="stt-field-wrap">' +
+        '<textarea class="student-answer-area" placeholder="Write or speak your answer — tap the 🎤 mic button to dictate…" rows="6" id="' + taId + '" style="padding-bottom:2.5rem"></textarea>' +
+        '<button class="stt-field-btn" id="micbtn-' + taId + '" onclick="startFieldMicSafe(\'' + taId + '\')" title="Tap to dictate your answer">' +
+          '<i class="ti ti-microphone"></i>' +
+        '</button>' +
+      '</div>' +
       '<div class="btn-row">' +
         '<button class="btn-sm btn-accent" onclick="toggleMS(\'' + key + '\')">' +
           '<i class="ti ti-eye"></i> Mark scheme</button>' +
@@ -415,6 +440,22 @@ function renderWritten() {
       '</div>';
   }).join('');
   setEl('written-area', html);
+}
+
+/* Safe wrappers — called from HTML before feature JS loads */
+function getDiffLevelSafe(q) {
+  if (typeof getDiffLevel === 'function') return getDiffLevel(q);
+  if (q.marks <= 2) return 'f';
+  if (q.marks <= 8) return 'c';
+  return 'e';
+}
+function setDiffFilterSafe(val) {
+  if (typeof currentDiffFilter !== 'undefined') currentDiffFilter = val;
+  renderWritten();
+}
+function startFieldMicSafe(targetId) {
+  if (typeof startFieldMic === 'function') startFieldMic(targetId);
+  else alert('Speech recognition loading — please try again in a moment.');
 }
 
 function toggleMS(key) {
@@ -2112,62 +2153,6 @@ function setDiffFilter(val, panel) {
   if (panel === 'quiz')    { filterQuiz(); }
   if (panel === 'written') { filterWritten(); }
 }
-
-/* ─── PATCH renderWritten to add mic buttons and diff filter ─── */
-var _origRenderWritten = renderWritten;
-renderWritten = function() {
-  var S  = SUBJECTS[currentSubject];
-  var qs = S.writtenQuestions || [];
-  if (qs.length === 0) {
-    setEl('written-area','<p style="color:var(--text2);padding:1rem">Written questions coming soon.</p>'); return;
-  }
-  var mf = currentWrittenFilter;
-  var tf = currentWrittenTopicFilter;
-  var filtered = qs.filter(function(q) {
-    var markOk  = (mf === 'all' || String(q.marks) === mf);
-    var topicOk = (tf === 'all' || q.topic === tf);
-    var diffOk  = (currentDiffFilter === 'all' || getDiffLevel(q) === currentDiffFilter);
-    return markOk && topicOk && diffOk;
-  });
-
-  var diffBar = buildDiffBar('written', 'written');
-
-  if (filtered.length === 0) {
-    setEl('written-area', diffBar + '<p style="color:var(--text2);padding:1rem">No questions match.</p>'); return;
-  }
-
-  var html = diffBar + filtered.map(function(q, i) {
-    var key  = 'w_' + i + '_' + currentSubject;
-    var dlvl = getDiffLevel(q);
-    var dmap = { f:'Foundation', c:'Core', e:'Extension' };
-    var dclr = { f:'ctag-g', c:'ctag-b', e:'ctag-p' };
-    /* mic button ID matches what startFieldMic looks for: 'micbtn-' + targetId */
-    var taId  = 'ans-' + key;
-    var micId = 'micbtn-' + taId;
-    return '<div class="written-question">' +
-      '<div class="written-q-header">' +
-        '<span class="marks-badge">[' + q.marks + ' marks]</span>' +
-        '<span class="ctag ctag-b">' + q.topic + '</span>' +
-        '<span class="ctag ' + dclr[dlvl] + ' diff-badge">' + dmap[dlvl] + '</span>' +
-      '</div>' +
-      '<h4>' + q.question + '</h4>' +
-      '<div class="stt-field-wrap">' +
-        '<textarea class="student-answer-area" placeholder="Write or speak your answer — tap the mic 🎤 to dictate…" rows="6" id="' + taId + '" style="padding-bottom:2.5rem"></textarea>' +
-        '<button class="stt-field-btn" id="' + micId + '" onclick="startFieldMic(\'' + taId + '\')" title="Tap to dictate your answer">' +
-          '<i class="ti ti-microphone"></i>' +
-        '</button>' +
-      '</div>' +
-      '<div class="btn-row">' +
-        '<button class="btn-sm btn-accent" onclick="toggleMS(\'' + key + '\')"><i class="ti ti-eye"></i> Mark scheme</button>' +
-        '<button class="btn-sm" onclick="toggleMA(\'' + key + '\')"><i class="ti ti-file-text"></i> Model answer</button>' +
-        '<button class="btn-sm" onclick="clearWritten(\'' + key + '\')"><i class="ti ti-trash"></i> Clear</button>' +
-      '</div>' +
-      '<div class="mark-scheme" id="ms-' + key + '"><h5><i class="ti ti-check"></i> Mark scheme</h5><p>' + (q.markScheme||'').replace(/\n/g,'<br>') + '</p></div>' +
-      '<div class="model-answer" id="ma-' + key + '"><h5><i class="ti ti-file-text"></i> Model answer</h5><p>' + (q.modelAnswer||'').replace(/\n/g,'<br><br>') + '</p></div>' +
-      '</div>';
-  }).join('');
-  setEl('written-area', html);
-};
 
 /* ─── PATCH openLessonDetail to add Timer + Print buttons ─── */
 var _origOpenLessonDetail = openLessonDetail;
