@@ -25,11 +25,13 @@ var currentWrittenFilter    = 'all';
 var currentWrittenTopicFilter = 'all';
 var currentQuizFilter       = 'all';
 var currentDiffFilter       = 'all';
-/* ── Student evaluation state — declared here so renderStudents() never sees undefined ── */
+/* ── Student evaluation state ── */
 var students          = [];
 var editingStudentId  = null;
 var editingEvalId     = null;
 var viewingStudentId  = null;
+/* ── Avatar colours — declared here so always available ── */
+var avatarColours = ['#1D9E75','#534AB7','#BA7517','#A32D2D','#185FA5','#993C1D','#993556','#0F6E56'];
 
 /* ─── INIT ─── */
 (function init() {
@@ -1345,8 +1347,6 @@ function renderBoards() {
   setEl('boards-content', html);
 }
 
-MEDIA_LESSONS
-
 /* ─── HELP PANEL ─── */
 function toggleHelpSection(id) {
   var body = document.getElementById('hbody-' + id);
@@ -2225,8 +2225,7 @@ function genId() {
   return 'st_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
 }
 
-/* ─── AVATAR COLOURS ─── */
-var avatarColours = ['#1D9E75','#534AB7','#BA7517','#A32D2D','#185FA5','#993C1D','#993556','#0F6E56'];
+/* ─── AVATAR HELPERS ─── */
 function avatarColour(id) {
   var n = 0;
   for (var i = 0; i < id.length; i++) n += id.charCodeAt(i);
