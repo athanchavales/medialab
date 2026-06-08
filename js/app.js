@@ -24,12 +24,19 @@ var currentGlossFilter      = 'all';
 var currentWrittenFilter    = 'all';
 var currentWrittenTopicFilter = 'all';
 var currentQuizFilter       = 'all';
-var currentDiffFilter       = 'all';   /* differentiation level filter — must be here, not in features section */
+var currentDiffFilter       = 'all';
+/* ── Student evaluation state — declared here so renderStudents() never sees undefined ── */
+var students          = [];
+var editingStudentId  = null;
+var editingEvalId     = null;
+var viewingStudentId  = null;
 
 /* ─── INIT ─── */
 (function init() {
   loadFonts();
   loadProgress();
+  loadStudents();   /* must run before any panel can call renderStudents() */
+  startCountdownTick();
   setSubject('media', document.getElementById('btn-media'));
 })();
 
@@ -2200,27 +2207,11 @@ openLessonDetail = function(i) {
 };
 
 /* ─── INIT NEW FEATURES ─── */
-(function initNewFeatures() {
-  /* Load sticky note */
-  try {
-    var saved = localStorage.getItem('oakhill_sticky');
-    if (saved) { /* loaded when panel opens */ }
-  } catch(e) {}
-  /* Start countdown if saved */
-  startCountdownTick();
-})();
-
 /* ═══════════════════════════════════════
    STUDENT EVALUATION SYSTEM — v8
 ═══════════════════════════════════════ */
 
-/* ─── STATE ─── */
-var students     = [];   /* array of student objects */
-var editingStudentId  = null;
-var editingEvalId     = null;
-var viewingStudentId  = null;
-
-/* ─── STORAGE ─── */
+/* ─── STUDENT STORAGE ─── */
 function saveStudents() {
   try { localStorage.setItem('oakhill_students', JSON.stringify(students)); } catch(e) {}
 }
@@ -2739,7 +2730,4 @@ function exportStudents() {
   URL.revokeObjectURL(url);
 }
 
-/* ─── INIT STUDENTS ─── */
-(function initStudents(){
-  loadStudents();
-})();
+/* loadStudents() is now called in the main init() function at the top of the file */
