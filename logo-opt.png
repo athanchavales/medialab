@@ -2786,30 +2786,55 @@ body {
 .teacher-unlocked .tab-lock { display: none; }
 
 /* Teacher badge in header */
+/* ── Teacher badge — locked state (prominent, red-tinged) ── */
 .teacher-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition: all .15s;
-  border: 1px solid var(--border2);
-  background: var(--surface2);
-  color: var(--text2);
+  border: 1.5px solid #C8CAD0;
+  background: #F4F5F7;
+  color: #52576B;
   flex-shrink: 0;
   white-space: nowrap;
+  letter-spacing: .2px;
 }
-.teacher-badge i { font-size: 13px; }
-.teacher-badge:hover { border-color: var(--acc); color: var(--acc); }
+.teacher-badge i { font-size: 15px; }
+.teacher-badge:hover {
+  border-color: var(--acc);
+  background: var(--acc-l);
+  color: var(--acc-d);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(17,93,65,0.15);
+}
+
+/* ── Unlocked state — green, confident ── */
 .teacher-badge.unlocked {
-  background: var(--green-l);
-  border-color: var(--green);
-  color: var(--green-d);
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(17,93,65,0.3);
 }
-.teacher-badge.unlocked i { color: var(--green); }
+.teacher-badge.unlocked i { color: #fff; }
+.teacher-badge.unlocked:hover {
+  background: var(--green-d);
+  border-color: var(--green-d);
+  color: #fff;
+  box-shadow: 0 3px 14px rgba(17,93,65,0.4);
+}
+
+/* board label in header */
+.board-label {
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 500;
+  white-space: nowrap;
+}
 
 /* PIN backdrop */
 .pin-backdrop {
@@ -2997,4 +3022,16 @@ body {
   .pin-box { padding: 1.5rem 1.25rem; }
   .pin-key { height: 52px; font-size: 20px; }
   .teacher-badge span { display: none; }
+}
+
+/* Subtle pulse on the lock badge to draw attention when locked */
+@keyframes badgePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(17,93,65,0); }
+  50%      { box-shadow: 0 0 0 4px rgba(17,93,65,0.12); }
+}
+.teacher-badge:not(.unlocked) {
+  animation: badgePulse 3s ease-in-out infinite;
+}
+.teacher-badge:not(.unlocked):hover {
+  animation: none;
 }
